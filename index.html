@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;background:#0D1626;color:#EEF1F5;-webkit-font-smoothing:antialiased}
+a{color:#C6F24E}a:hover{color:#E2FF8A}
+input[type=range]{accent-color:#C6F24E}
+</style>
+</helmet>
+<div style="min-height:100vh;display:grid;grid-template-rows:auto 1fr auto;font-family:'Archivo',Helvetica,sans-serif;background:radial-gradient(120% 80% at 80% 0%,#1A2C47 0%,#0D1626 60%);box-sizing:border-box">
+  <header style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding:24px clamp(20px,4vw,48px)">
+    <div style="font-weight:800;font-size:18px;letter-spacing:-0.01em">10 Shoegaze Chord Progressions</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <sc-for list="{{ dots }}" as="d" hint-placeholder-count="10">
+        <button onClick="{{ d.go }}" style="width:30px;height:30px;border-radius:15px;border:1px solid {{ d.border }};background:{{ d.bg }};color:{{ d.color }};font-family:'IBM Plex Mono',monospace;font-size:12px;cursor:pointer;padding:0">{{ d.n }}</button>
+      </sc-for>
+    </div>
+  </header>
+
+  <main data-screen-label="Progression" style="display:flex;flex-direction:column;justify-content:center;gap:28px;padding:8px clamp(20px,4vw,48px) 24px">
+    <div style="display:flex;align-items:baseline;gap:20px;flex-wrap:wrap">
+      <div style="font-weight:800;font-size:clamp(64px,9vw,120px);line-height:0.9;letter-spacing:-0.04em">{{ numLabel }}</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="font-weight:700;font-size:clamp(18px,2vw,24px)">{{ sequence }}</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#8A97AB">Tuning: {{ tuningLabel }}</div>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:clamp(8px,1.5vw,20px)">
+      <button onClick="{{ prev }}" aria-label="Previous" style="flex:none;width:44px;height:44px;border-radius:22px;border:1px solid #2A3B57;background:transparent;color:#EEF1F5;font-size:18px;cursor:pointer">←</button>
+      <div style="flex:1;min-width:0;display:flex;flex-wrap:nowrap;gap:clamp(8px,1.6vw,28px);justify-content:center">
+        <sc-for list="{{ chords }}" as="chord" hint-placeholder-count="4">
+          <div onClick="{{ chord.audition }}" style="flex:1 1 0;min-width:0;max-width:240px;background:#16243A;border-radius:16px;padding:14px 14px 12px;box-sizing:border-box;border:2px solid {{ chord.border }};cursor:pointer;transform:{{ chord.lift }};transition:transform .2s,border-color .2s">
+            <div style="text-align:center;font-weight:700;font-size:22px;margin-bottom:12px">{{ chord.name }}</div>
+            <div style="display:grid;grid-template-columns:22px 1fr;gap:4px">
+              <div style="display:flex;flex-direction:column">
+                <sc-for list="{{ chord.rows }}" as="row" hint-placeholder-count="4">
+                  <div style="height:40px;display:flex;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#C9D2DF">{{ row.label }}</div>
+                </sc-for>
+              </div>
+              <div style="position:relative">
+                <div style="position:absolute;top:0;bottom:0;left:8.333%;right:8.333%;background:#F4EEE2;border-top:{{ chord.nut }};display:flex;flex-direction:column">
+                  <sc-for list="{{ chord.rows }}" as="row" hint-placeholder-count="4">
+                    <div style="height:40px;border-bottom:1px solid #3A3A3A;box-sizing:border-box"></div>
+                  </sc-for>
+                </div>
+                <div style="position:absolute;top:0;bottom:0;left:8.333%;right:8.333%;display:flex;justify-content:space-between;margin:0 -0.75px">
+                  <div style="width:1.5px;background:#3A3A3A"></div><div style="width:1.5px;background:#3A3A3A"></div><div style="width:1.5px;background:#3A3A3A"></div><div style="width:1.5px;background:#3A3A3A"></div><div style="width:1.5px;background:#3A3A3A"></div><div style="width:1.5px;background:#3A3A3A"></div>
+                </div>
+                <div style="position:relative">
+                  <sc-for list="{{ chord.rows }}" as="row" hint-placeholder-count="4">
+                    <div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));height:40px">
+                      <sc-for list="{{ row.cells }}" as="cell" hint-placeholder-count="6">
+                        <div style="display:flex;align-items:center;justify-content:center;min-width:0;overflow:visible">
+                          <sc-if value="{{ cell.dot }}" hint-placeholder-val="{{ false }}">
+                            <div style="flex:none;width:clamp(14px,1.3vw,20px);height:clamp(14px,1.3vw,20px);border-radius:50%;background:#C6F24E;border:1px solid #6E8A1F;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;color:#14200A">{{ cell.finger }}</div>
+                          </sc-if>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:22px 1fr;gap:4px;margin-top:8px">
+              <div></div>
+              <div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr))">
+                <sc-for list="{{ chord.strings }}" as="s" hint-placeholder-count="6">
+                  <div style="text-align:center;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;color:{{ s.color }}">{{ s.n }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <button onClick="{{ next }}" aria-label="Next" style="flex:none;width:44px;height:44px;border-radius:22px;border:1px solid #2A3B57;background:transparent;color:#EEF1F5;font-size:18px;cursor:pointer">→</button>
+    </div>
+    <div style="text-align:center;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6B7A90">Click a chord to hear it · Red string = muted · Space to play · ← → to browse</div>
+  </main>
+
+  <footer style="display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:clamp(16px,3vw,36px);padding:20px clamp(20px,4vw,48px) 28px;border-top:1px solid #1F2F49">
+    <button onClick="{{ togglePlay }}" style="display:flex;align-items:center;gap:12px;height:52px;padding:0 26px 0 20px;border-radius:26px;border:none;background:#C6F24E;color:#14200A;font-family:'Archivo',sans-serif;font-weight:700;font-size:16px;cursor:pointer">
+      <sc-if value="{{ playing }}" hint-placeholder-val="{{ false }}">
+        <div style="width:14px;height:14px;background:#14200A;border-radius:2px"></div>
+      </sc-if>
+      <sc-if value="{{ notPlaying }}" hint-placeholder-val="{{ true }}">
+        <div style="width:0;height:0;border-left:14px solid #14200A;border-top:9px solid transparent;border-bottom:9px solid transparent"></div>
+      </sc-if>
+      <span>{{ playLabel }}</span>
+    </button>
+
+    <label style="display:flex;align-items:center;gap:12px;font-family:'IBM Plex Mono',monospace;font-size:13px;color:#C9D2DF">
+      <span>Tempo</span>
+      <input type="range" min="50" max="140" step="1" value="{{ bpm }}" onChange="{{ onBpm }}" style="width:140px">
+      <span style="min-width:62px;color:#EEF1F5">{{ bpm }} BPM</span>
+    </label>
+
+    <div style="display:flex;align-items:center;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:13px;color:#C9D2DF">
+      <span>Bars / chord</span>
+      <div style="display:flex;border:1px solid #2A3B57;border-radius:18px;padding:3px;gap:2px">
+        <sc-for list="{{ barOpts }}" as="b" hint-placeholder-count="3">
+          <button onClick="{{ b.pick }}" style="width:34px;height:28px;border-radius:14px;border:none;background:{{ b.bg }};color:{{ b.color }};font-family:'IBM Plex Mono',monospace;font-size:13px;cursor:pointer">{{ b.n }}</button>
+        </sc-for>
+      </div>
+    </div>
+
+    <button onClick="{{ toggleLoop }}" style="height:36px;padding:0 16px;border-radius:18px;border:1px solid {{ loopBorder }};background:transparent;color:{{ loopColor }};font-family:'IBM Plex Mono',monospace;font-size:13px;cursor:pointer">Loop {{ loopLabel }}</button>
+
+    <button onClick="{{ download }}" style="display:flex;align-items:center;gap:10px;height:44px;padding:0 20px;border-radius:22px;border:1px solid #EEF1F5;background:transparent;color:#EEF1F5;font-family:'Archivo',sans-serif;font-weight:700;font-size:15px;cursor:pointer" style-hover="background:#EEF1F5;color:#0D1626">
+      <span>↓</span><span>Download MIDI</span>
+    </button>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;defaultTempo&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:72,&quot;min&quot;:50,&quot;max&quot;:140,&quot;step&quot;:1,&quot;unit&quot;:&quot;BPM&quot;,&quot;tsType&quot;:&quot;number&quot;},&quot;timbre&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Wash&quot;,&quot;Clean&quot;],&quot;default&quot;:&quot;Wash&quot;,&quot;tsType&quot;:&quot;'Wash' | 'Clean'&quot;},&quot;showFingers&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+const STD = { label: 'Standard (E A D G B E)', notes: [40,45,50,55,59,64], names: ['E','A','D','G','B','e'], file: 'standard' };
+const DAD = { label: 'DADAAD', notes: [38,45,50,57,57,62], names: ['D','A','D','A','A','D'], file: 'DADAAD' };
+const x = null;
+const C = (name, frets, fingers, base) => ({ name, frets, fingers, base });
+const PROGS = [
+  { tuning: STD, chords: [C('C#m7',[x,11,11,9,0,0],[0,3,4,1],9), C('Badd4',[x,9,9,8,0,0],[0,2,3,1],8), C('Aadd9',[x,7,7,6,0,0],[0,2,3,1],6)] },
+  { tuning: STD, chords: [C('E5',[x,7,9,9,0,0],[0,1,3,4],7), C('C#m7',[9,x,9,9,0,0],[2,0,3,4],7), C('Badd4',[7,9,9,8,0,0],[1,3,4,2],7), C('Asus2',[x,0,9,9,0,0],[0,0,3,4],7)] },
+  { tuning: STD, chords: [C('Fmaj7',[x,3,3,2,1,0],[0,3,4,2,1],1), C('C',[x,3,2,0,1,0],[0,3,2,0,1],1), C('Gadd4',[x,5,5,4,3,0],[0,3,4,2,1],3)] },
+  { tuning: STD, chords: [C('E5',[x,7,9,9,0,0],[0,1,3,4],7), C('D6sus2',[x,5,7,7,0,0],[0,1,3,4],5)] },
+  { tuning: STD, chords: [C('Aadd9',[x,7,7,6,0,0],[0,2,3,1],6), C('Badd4',[x,9,9,8,0,0],[0,2,3,1],8)] },
+  { tuning: STD, chords: [C('D69',[10,12,12,11,0,0],[1,3,4,2],10), C('Aadd9',[5,7,7,6,0,0],[1,3,4,2],5), C('Cmaj7',[8,10,10,9,0,0],[1,3,4,2],8), C('G6',[3,5,5,4,0,0],[1,3,4,2],3)] },
+  { tuning: STD, chords: [C('E6',[x,7,6,6,0,0],[0,3,1,2],6), C('C#m7',[x,11,11,9,0,0],[0,3,4,1],9), C('Dadd9',[x,12,12,11,10,0],[0,4,3,2,1],10)] },
+  { tuning: STD, chords: [C('Dadd9',[x,12,12,11,10,0],[0,4,3,2,1],10), C('F#m7',[x,4,4,2,2,0],[0,3,4,1,2],1)] },
+  { tuning: STD, chords: [C('F',[1,3,3,2,0,0],[1,3,4,2],1), C('G',[3,5,5,4,0,0],[1,3,4,2],3), C('Bb',[6,8,8,7,0,0],[1,3,4,2],6), C('C',[x,3,2,0,1,0],[0,3,2,0,1],1)] },
+  { tuning: DAD, chords: [C('D5',[0,0,0,0,0,0],[],0), C('Dmaj7',[4,0,4,4,0,0],[2,0,3,4],4), C('Bm7',[9,9,0,9,0,0],[2,3,0,4],9), C('Gsus2',[5,5,0,5,0,0],[2,3,0,4],5)] },
+];
+const LIME = '#C6F24E';
+const notesOf = (p, c) => c.frets.map((f, i) => f == null ? null : p.tuning.notes[i] + f).filter(n => n != null);
+const fileName = (p, i) => `shoegaze-${String(i + 1).padStart(2, '0')}-${p.chords.map(c => c.name.replace('#', 's')).join('-')}`;
+
+function buildMidi(p, bpm, bars, idx) {
+  const ppq = 480, barT = ppq * 4 * bars, strum = 24, ev = [];
+  const vlq = n => { const b = [n & 0x7f]; while ((n >>= 7)) b.unshift((n & 0x7f) | 0x80); return b; };
+  const name = Array.from(`Shoegaze ${idx + 1}: ${p.chords.map(c => c.name).join(' - ')}`).map(ch => ch.charCodeAt(0) & 0x7f);
+  const mpq = Math.round(60000000 / bpm);
+  ev.push([0, 0, [0xff, 0x03, ...vlq(name.length), ...name]]);
+  ev.push([0, 0, [0xff, 0x51, 0x03, (mpq >> 16) & 255, (mpq >> 8) & 255, mpq & 255]]);
+  ev.push([0, 0, [0xff, 0x58, 0x04, 4, 2, 24, 8]]);
+  ev.push([0, 0, [0xc0, 29]]);
+  p.chords.forEach((c, ci) => {
+    const t = ci * barT;
+    notesOf(p, c).forEach((n, k) => {
+      ev.push([t + k * strum, 2, [0x90, n, 96 - k * 4]]);
+      ev.push([t + barT - 1, 1, [0x80, n, 0]]);
+    });
+  });
+  ev.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  const trk = []; let last = 0;
+  ev.forEach(([t, , b]) => { trk.push(...vlq(t - last), ...b); last = t; });
+  trk.push(0, 0xff, 0x2f, 0);
+  const L = trk.length;
+  return new Uint8Array([0x4d,0x54,0x68,0x64,0,0,0,6,0,0,0,1,(ppq >> 8) & 255, ppq & 255,
+    0x4d,0x54,0x72,0x6b,(L >>> 24) & 255,(L >> 16) & 255,(L >> 8) & 255,L & 255, ...trk]);
+}
+
+class Component extends DCLogic {
+  state = { idx: 0, playing: false, active: -1, bpm: null, bars: 1, loop: true };
+  timers = [];
+  componentDidMount() {
+    try { const s = JSON.parse(localStorage.getItem('shoegaze-tool') || '{}'); if (s.idx != null) this.setState({ idx: s.idx }); } catch (e) {}
+    this.onKey = e => {
+      if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName) && e.key === ' ') return;
+      if (e.key === 'ArrowRight') this.go(this.state.idx + 1);
+      else if (e.key === 'ArrowLeft') this.go(this.state.idx - 1);
+      else if (e.key === ' ') { e.preventDefault(); this.togglePlay(); }
+    };
+    window.addEventListener('keydown', this.onKey);
+  }
+  componentWillUnmount() { window.removeEventListener('keydown', this.onKey); this.stop(); }
+  bpm() { return this.state.bpm ?? this.props.defaultTempo ?? 72; }
+  go(i) {
+    const idx = (i + PROGS.length) % PROGS.length;
+    this.stop();
+    this.setState({ idx });
+    try { localStorage.setItem('shoegaze-tool', JSON.stringify({ idx })); } catch (e) {}
+  }
+  audio() {
+    if (this.ctx) return this.ctx;
+    const ctx = this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const comp = ctx.createDynamicsCompressor(); comp.connect(ctx.destination);
+    const master = ctx.createGain(); master.gain.value = 0.7; master.connect(comp);
+    const verb = ctx.createConvolver(); const len = ctx.sampleRate * 4.5;
+    const ir = ctx.createBuffer(2, len, ctx.sampleRate);
+    for (let ch = 0; ch < 2; ch++) { const d = ir.getChannelData(ch); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6); }
+    verb.buffer = ir;
+    const wet = ctx.createGain(); const dry = ctx.createGain();
+    verb.connect(wet); wet.connect(master); dry.connect(master);
+    this.input = ctx.createGain(); this.input.connect(verb); this.input.connect(dry);
+    this.wet = wet; this.dry = dry;
+    return ctx;
+  }
+  voice(bus, midi, t, dur) {
+    const ctx = this.ctx, f = 440 * Math.pow(2, (midi - 69) / 12);
+    const clean = (this.props.timbre ?? 'Wash') === 'Clean';
+    const g = ctx.createGain(), lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass'; lp.Q.value = 0.8;
+    lp.frequency.setValueAtTime(clean ? 3200 : 2400, t);
+    lp.frequency.exponentialRampToValueAtTime(clean ? 900 : 1300, t + dur);
+    const peak = clean ? 0.12 : 0.07;
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(peak, t + (clean ? 0.005 : 0.06));
+    g.gain.exponentialRampToValueAtTime(peak * (clean ? 0.08 : 0.55), t + dur);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur + (clean ? 0.4 : 1.4));
+    lp.connect(g); g.connect(bus);
+    const dets = clean ? [0] : [-9, 0, 9];
+    dets.forEach(d => {
+      const o = ctx.createOscillator(); o.type = clean ? 'triangle' : 'sawtooth';
+      o.frequency.value = f; o.detune.value = d;
+      o.connect(lp); o.start(t); o.stop(t + dur + 1.6);
+    });
+  }
+  strum(bus, p, c, t, dur) { notesOf(p, c).forEach((n, k) => this.voice(bus, n, t + k * 0.022, dur)); }
+  newBus() {
+    const ctx = this.audio(); ctx.resume();
+    const clean = (this.props.timbre ?? 'Wash') === 'Clean';
+    this.wet.gain.value = clean ? 0.35 : 0.8; this.dry.gain.value = clean ? 0.8 : 0.5;
+    const bus = ctx.createGain(); bus.connect(this.input); return bus;
+  }
+  killBus(bus) {
+    if (!bus) return; const t = this.ctx.currentTime;
+    bus.gain.cancelScheduledValues(t); bus.gain.setValueAtTime(bus.gain.value, t); bus.gain.linearRampToValueAtTime(0, t + 0.25);
+    setTimeout(() => bus.disconnect(), 400);
+  }
+  stop() {
+    this.timers.forEach(clearTimeout); this.timers = [];
+    this.killBus(this.bus); this.bus = null;
+    if (this.state.playing || this.state.active !== -1) this.setState({ playing: false, active: -1 });
+  }
+  play() {
+    this.stop();
+    const p = PROGS[this.state.idx];
+    const bus = this.bus = this.newBus();
+    const chordDur = this.state.bars * 4 * 60 / this.bpm();
+    const total = chordDur * p.chords.length;
+    const pass = (t0) => {
+      p.chords.forEach((c, i) => {
+        this.strum(bus, p, c, t0 + i * chordDur, chordDur);
+        const ms = (t0 + i * chordDur - this.ctx.currentTime) * 1000;
+        this.timers.push(setTimeout(() => this.setState({ active: i }), Math.max(0, ms)));
+      });
+      const endMs = (t0 + total - this.ctx.currentTime) * 1000;
+      if (this.state.loop) this.timers.push(setTimeout(() => this.bus === bus && pass(t0 + total), endMs - 150));
+      else this.timers.push(setTimeout(() => { if (this.bus === bus) { this.bus = null; this.setState({ playing: false, active: -1 }); } }, endMs));
+    };
+    pass(this.ctx.currentTime + 0.06);
+    this.setState({ playing: true });
+  }
+  togglePlay() { this.state.playing ? this.stop() : this.play(); }
+  audition(i) {
+    if (this.state.playing) return;
+    const p = PROGS[this.state.idx];
+    const bus = this.newBus();
+    this.strum(bus, p, p.chords[i], this.ctx.currentTime + 0.03, 2.2);
+    setTimeout(() => bus.disconnect(), 5000);
+  }
+  download() {
+    const p = PROGS[this.state.idx];
+    const blob = new Blob([buildMidi(p, this.bpm(), this.state.bars, this.state.idx)], { type: 'audio/midi' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = fileName(p, this.state.idx) + '.mid';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+  renderVals() {
+    const s = this.state, p = PROGS[s.idx];
+    const showF = this.props.showFingers ?? true;
+    const chords = p.chords.map((c, i) => {
+      const base = c.base || 1;
+      const rows = [0, 1, 2, 3].map(r => {
+        const fret = base + r;
+        return { label: c.base ? String(fret) : '', cells: c.frets.map((f, si) => ({ dot: f != null && f > 0 && f === fret, finger: showF ? (c.fingers[si] || '') : '' })) };
+      });
+      const on = s.playing && s.active === i;
+      return {
+        name: c.name, rows,
+        nut: c.base === 1 ? '5px solid #F4EEE2' : '0 solid transparent',
+        strings: p.tuning.names.map((n, si) => ({ n, color: c.frets[si] == null ? '#FF5A5F' : '#C9D2DF' })),
+        border: on ? LIME : 'transparent', lift: on ? 'translateY(-6px)' : 'none',
+        audition: () => this.audition(i),
+      };
+    });
+    return {
+      numLabel: String(s.idx + 1).padStart(2, '0'),
+      sequence: p.chords.map(c => c.name).join('  →  '),
+      tuningLabel: p.tuning.label,
+      chords,
+      dots: PROGS.map((_, i) => ({ n: i + 1, go: () => this.go(i), bg: i === s.idx ? '#EEF1F5' : 'transparent', color: i === s.idx ? '#0D1626' : '#C9D2DF', border: i === s.idx ? '#EEF1F5' : '#2A3B57' })),
+      prev: () => this.go(s.idx - 1), next: () => this.go(s.idx + 1),
+      playing: s.playing, notPlaying: !s.playing, playLabel: s.playing ? 'Stop' : 'Play progression',
+      togglePlay: () => this.togglePlay(),
+      bpm: this.bpm(),
+      onBpm: e => { const v = +e.target.value; const was = this.state.playing; this.setState({ bpm: v }, () => was && this.play()); },
+      barOpts: [1, 2, 4].map(n => ({ n, pick: () => { const was = this.state.playing; this.setState({ bars: n }, () => was && this.play()); }, bg: s.bars === n ? LIME : 'transparent', color: s.bars === n ? '#14200A' : '#C9D2DF' })),
+      toggleLoop: () => this.setState({ loop: !s.loop }),
+      loopLabel: s.loop ? 'on' : 'off', loopBorder: s.loop ? LIME : '#2A3B57', loopColor: s.loop ? LIME : '#8A97AB',
+      download: () => this.download(),
+    };
+  }
+}
+</script>
+</body>
+</html>
