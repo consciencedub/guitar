@@ -1,3 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shoegaze Guitar Explorer</title>
+  <style>
+    :root {
+      --bg: #0b0c14;
+      --card-bg: #141726;
+      --card-border: #232840;
+      --accent: #8b5cf6;
+      --accent-glow: rgba(139, 92, 246, 0.4);
+      --accent-secondary: #06b6d4;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --fretboard-wood: #1e1b18;
+      --fret-wire: #64748b;
+      --marker-dot: #ec4899;
+      --open-string: #10b981;
+      --muted-string: #ef4444;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: radial-gradient(circle at 50% 0%, #1e1b4b 0%, var(--bg) 70%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    header h1 {
+      font-size: 2rem;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #a78bfa, #38bdf8, #f472b6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+    header p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 980px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Controls Bar */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    select, input[type="range"], button {
+      background: #1e2238;
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+    select:hover, button:hover {
+      border-color: var(--accent);
+    }
+    button.primary {
+      background: var(--accent);
+      border: none;
+      font-weight: 600;
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+    button.primary:hover {
+      background: #7c3aed;
+    }
+    button.active {
+      background: #059669;
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
+    }
+
+    /* Fretboard View */
+    .fretboard-wrap {
+      overflow-x: auto;
+      padding: 12px 0;
+    }
+    .fretboard {
+      position: relative;
+      width: 900px;
+      height: 190px;
+      background: var(--fretboard-wood);
+      border-radius: 6px;
+      border-top: 3px solid #332d27;
+      border-bottom: 3px solid #332d27;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+      user-select: none;
+      margin: 0 auto;
+    }
+
+    /* Nut */
+    .nut {
+      position: absolute;
+      left: 48px;
+      top: 0;
+      bottom: 0;
+      width: 10px;
+      background: #e2e8f0;
+      box-shadow: 2px 0 6px rgba(0,0,0,0.6);
+      z-index: 3;
+    }
+
+    /* Frets */
+    .fret-wire {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: linear-gradient(90deg, #94a3b8, #475569);
+      z-index: 2;
+    }
+    .fret-num {
+      position: absolute;
+      bottom: -22px;
+      transform: translateX(-50%);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* Fret Inlays */
+    .fret-marker {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    /* Strings */
+    .string-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      background: linear-gradient(180deg, #cbd5e1, #64748b);
+      z-index: 4;
+      pointer-events: none;
+    }
+
+    /* String Header Status */
+    .string-status {
+      position: absolute;
+      left: 12px;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: 0.8rem;
+      font-weight: 700;
+      transform: translateY(-50%);
+      z-index: 5;
+    }
+    .string-status.open { color: var(--open-string); }
+    .string-status.mute { color: var(--muted-string); }
+
+    /* Note Marker on Fretboard */
+    .fret-note {
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      background: var(--marker-dot);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: bold;
+      color: white;
+      z-index: 6;
+      box-shadow: 0 0 10px rgba(236, 72, 153, 0.8);
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .fret-note.ringing {
+      transform: translate(-50%, -50%) scale(1.3);
+      background: #38bdf8;
+      box-shadow: 0 0 16px #38bdf8;
+    }
+
+    /* Chord Details Bar */
+    .chord-info {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 14px;
+      margin-bottom: 14px;
+    }
+    .chord-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #38bdf8;
+    }
+    .chord-tab {
+      font-family: monospace;
+      letter-spacing: 2px;
+      background: #0f121e;
+      padding: 6px 12px;
+      border-radius: 4px;
+      border: 1px solid var(--card-border);
+    }
+    .chord-desc {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* Quick Chord Selector Pills */
+    .chord-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .chord-btn {
+      padding: 10px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .chord-btn.active {
+      border-color: #38bdf8;
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+    }
+
+    /* Progressions Bar */
+    .progression-steps {
+      display: flex;
+      gap: 10px;
+      margin: 14px 0;
+      overflow-x: auto;
+      padding-bottom: 6px;
+    }
+    .prog-step {
+      flex: 1;
+      min-width: 105px;
+      padding: 10px;
+      border-radius: 8px;
+      background: #111424;
+      border: 1px solid var(--card-border);
+      text-align: center;
+      font-size: 0.85rem;
+      user-select: none;
+      transition: all 0.2s;
+    }
+    .prog-step:hover {
+      border-color: var(--accent);
+    }
+    .prog-step.active {
+      border-color: #ec4899;
+      background: rgba(236, 72, 153, 0.15);
+      box-shadow: 0 0 10px rgba(236, 72, 153, 0.3);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Shoegaze Guitar Lab</h1>
+    <p>Interactive Fretboard & Playbook Progression Player</p>
+  </header>
+
+  <div class="container">
+    <!-- Controls -->
+    <div class="card controls">
+      <div class="control-group">
+        <label for="book-section">Phase / Module</label>
+        <select id="book-section">
+          <option value="phase1_slide">Phase I: Moveable C-Shape (Step 1-2)</option>
+          <option value="phase1_twofinger">Phase I: 2-Finger MBV Dyads (Step 5)</option>
+          <option value="phase2_chordscale">Phase II: Key of E Chord-Scale (Step 3)</option>
+          <option value="phase3_modal">Phase III: Borrowed Modal Progression</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label for="tempo-range">Tempo: <span id="bpm-val">100</span> BPM</label>
+        <input type="range" id="tempo-range" min="60" max="150" value="100" />
+      </div>
+
+      <div class="control-group">
+        <button id="strum-btn" class="primary">Strum Chord (Space)</button>
+        <button id="play-prog-btn">Play Progression</button>
+      </div>
+    </div>
+
+    <!-- Active Chord & Fretboard Visualizer -->
+    <div class="card">
+      <div class="chord-info">
+        <div>
+          <div class="chord-title" id="display-name">C Major</div>
+          <div class="chord-desc" id="display-desc">Standard open shape foundation. Move up neck while keeping open G ringing.</div>
+        </div>
+        <div class="chord-tab" id="display-tab">x 3 2 0 1 0</div>
+      </div>
+
+      <div class="fretboard-wrap">
+        <div class="fretboard" id="fretboard">
+          <div class="nut"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Current Module Chords -->
+    <div class="card">
+      <label>Voicings in this Phase</label>
+      <div class="chord-grid" id="chord-buttons"></div>
+      
+      <div style="margin-top: 18px;">
+        <label>Rhythm & Progression Tracker</label>
+        <div class="progression-steps" id="prog-steps"></div>
+      </div>
+    </div>
+  </div>
+
   <script>
     /* Audio Synthesizer (Web Audio API with Shoegaze reverb & chorus) */
     class ShoegazeAudio {
@@ -282,7 +648,7 @@
         grid.appendChild(btn);
       });
 
-      // Build Progression Steps (NOW FULLY CLICKABLE WITH STRUM CUES)
+      // Build Progression Steps (Clickable with Down/Up strumming cues)
       const progSteps = document.getElementById('prog-steps');
       progSteps.innerHTML = '';
       section.progression.forEach((cName, idx) => {
@@ -295,7 +661,7 @@
         
         step.onclick = () => {
           if (isPlaying) {
-            playProgBtn.click(); // Stop automated loop if manually clicking
+            playProgBtn.click();
           }
           triggerProgStep(idx);
         };
@@ -361,3 +727,5 @@
     buildFretboard();
     loadSection('phase1_slide');
   </script>
+</body>
+</html>
