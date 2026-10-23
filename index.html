@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shoegaze Guitar Hub</title>
+  <style>
+    :root {
+      --bg: #0b0c14;
+      --card-bg: #141726;
+      --card-border: #232840;
+      --accent: #8b5cf6;
+      --accent-glow: rgba(139, 92, 246, 0.4);
+      --accent-pink: #ec4899;
+      --accent-cyan: #38bdf8;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: radial-gradient(circle at 50% 10%, #1e1b4b 0%, var(--bg) 80%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+
+    .hub-container {
+      width: 100%;
+      max-width: 720px;
+      text-align: center;
+    }
+
+    header {
+      margin-bottom: 36px;
+    }
+
+    header h1 {
+      font-size: 2.6rem;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #a78bfa, #38bdf8, #f472b6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      max-width: 520px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+
+    .button-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 36px;
+    }
+
+    .hub-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 28px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-decoration: none;
+      color: inherit;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .hub-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: transparent;
+      transition: background 0.3s ease;
+    }
+
+    .hub-card.scp::before {
+      background: linear-gradient(90deg, #38bdf8, #818cf8);
+    }
+
+    .hub-card.playbook::before {
+      background: linear-gradient(90deg, #ec4899, #a855f7);
+    }
+
+    .hub-card:hover {
+      transform: translateY(-4px);
+      border-color: #3b4261;
+      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.6);
+    }
+
+    .hub-card.scp:hover {
+      box-shadow: 0 12px 30px rgba(56, 189, 248, 0.2);
+    }
+
+    .hub-card.playbook:hover {
+      box-shadow: 0 12px 30px rgba(236, 72, 153, 0.2);
+    }
+
+    .icon-badge {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 16px;
+      background: #1c2136;
+      border: 1px solid #2b3252;
+    }
+
+    .card-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .card-desc {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+      margin-bottom: 20px;
+    }
+
+    .btn-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 9px 18px;
+      border-radius: 8px;
+      border: none;
+      pointer-events: none;
+      transition: all 0.2s ease;
+    }
+
+    .hub-card.scp .btn-action {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent-cyan);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+    }
+
+    .hub-card.playbook .btn-action {
+      background: rgba(236, 72, 153, 0.15);
+      color: var(--accent-pink);
+      border: 1px solid rgba(236, 72, 153, 0.4);
+    }
+
+    .hub-card:hover .btn-action {
+      filter: brightness(1.2);
+      transform: scale(1.02);
+    }
+
+    footer {
+      color: #64748b;
+      font-size: 0.82rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="hub-container">
+    <header>
+      <h1>Shoegaze Guitar Workbench</h1>
+      <p>Interactive chord libraries, fretboard visualizations, and rhythm exercises.</p>
+    </header>
+
+    <div class="button-grid">
+      <!-- Button 1: Shoegaze Chord Progressions -->
+      <a href="scp.htm" class="hub-card scp">
+        <div class="icon-badge">🎸</div>
+        <div class="card-title">Shoegaze Chord Progressions</div>
+        <div class="card-desc">Browse progressions, chord library sequences, and harmonic frameworks.</div>
+        <div class="btn-action">
+          Open App <span>&rarr;</span>
+        </div>
+      </a>
+
+      <!-- Button 2: Shoegaze Playbook -->
+      <a href="playbook.html" class="hub-card playbook">
+        <div class="icon-badge">📖</div>
+        <div class="card-title">Shoegaze Playbook</div>
+        <div class="card-desc">Interactive fretboard explorer, moveable shapes, audio synth, and step-by-step phases.</div>
+        <div class="btn-action">
+          Open Playbook <span>&rarr;</span>
+        </div>
+      </a>
+    </div>
+
+    <footer>
+      <span>Open-string voicings • Moveable shapes • Dream pop harmonies</span>
+    </footer>
+  </div>
+
+</body>
+</html>
