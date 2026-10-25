@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Songwriting Listening Detective</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --bg: #0f141c;
+      --card-bg: #1a2232;
+      --accent: #1db954;
+      --accent-hover: #1ed760;
+      --accent-dim: rgba(29, 185, 84, 0.15);
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --border: #30363d;
+      --tag-chord: #388bfd;
+      --tag-rhythm: #f0883e;
+      --tag-structure: #d29922;
+      --tag-lyric: #a371f7;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 24px;
+    }
+
+    header {
+      max-width: 1200px;
+      margin: 0 auto 20px auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 14px;
+    }
+    header h1 { font-size: 1.6rem; font-weight: 700; color: #fff; }
+    header p { color: var(--text-muted); font-size: 0.9rem; }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 880px) {
+      .container { grid-template-columns: 1fr; }
+    }
+
+    /* Left Sidebar: Player & Song Selector */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .spotify-box {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .selector-box {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .selector-box h3 {
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+    .track-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 380px;
+      overflow-y: auto;
+    }
+    .track-btn {
+      background: #151b26;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 12px;
+      text-align: left;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s;
+    }
+    .track-btn:hover {
+      background: #212c3f;
+      border-color: var(--accent);
+    }
+    .track-btn.active {
+      background: var(--accent-dim);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* Right Main Panel: Detective Clues & Analysis */
+    .main-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .song-title-header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .song-title-header h2 { font-size: 1.5rem; color: #fff; }
+    .song-title-header .artist { font-size: 1rem; color: var(--text-muted); margin-top: 2px; }
+
+    .tag {
+      padding: 3px 10px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: 20px;
+      text-transform: uppercase;
+    }
+    .tag-chord { background: rgba(56, 139, 253, 0.2); color: var(--tag-chord); border: 1px solid var(--tag-chord); }
+    .tag-rhythm { background: rgba(240, 136, 62, 0.2); color: var(--tag-rhythm); border: 1px solid var(--tag-rhythm); }
+    .tag-structure { background: rgba(210, 153, 34, 0.2); color: var(--tag-structure); border: 1px solid var(--tag-structure); }
+    .tag-lyric { background: rgba(163, 113, 247, 0.2); color: var(--tag-lyric); border: 1px solid var(--tag-lyric); }
+
+    /* Clue card */
+    .clue-card {
+      background: #151b26;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+    }
+    .clue-card h4 {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .assignment-prompt {
+      font-size: 1.05rem;
+      color: #fff;
+      font-weight: 500;
+      line-height: 1.5;
+    }
+
+    /* Interactive Quiz Section */
+    .quiz-box {
+      background: #111721;
+      border: 1px dashed #3d4653;
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    @media (max-width: 600px) {
+      .options-grid { grid-template-columns: 1fr; }
+    }
+    .quiz-option {
+      background: #192230;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: left;
+      font-size: 0.88rem;
+      transition: all 0.2s;
+    }
+    .quiz-option:hover {
+      background: #253347;
+      border-color: #58a6ff;
+    }
+    .quiz-option.correct {
+      background: rgba(29, 185, 84, 0.25) !important;
+      border-color: var(--accent) !important;
+      color: #fff !important;
+    }
+    .quiz-option.wrong {
+      background: rgba(248, 81, 73, 0.2) !important;
+      border-color: #f85149 !important;
+      color: #ff7b72 !important;
+    }
+
+    /* Explanation & Reference block */
+    .explanation-box {
+      display: none;
+      background: #16202e;
+      border-left: 4px solid var(--accent);
+      border-radius: 4px 8px 8px 4px;
+      padding: 16px;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    .explanation-box h4 {
+      color: var(--accent);
+      font-size: 0.95rem;
+      margin-bottom: 6px;
+    }
+    .explanation-box p {
+      font-size: 0.92rem;
+      color: #c9d1d9;
+      margin-bottom: 10px;
+    }
+    .explanation-box .book-ref {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      background: #0f141c;
+      padding: 4px 8px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div>
+      <h1>Songwriting Listening Detective</h1>
+      <p>Interactive ear-training companion based on <i>Writing Songs on Guitar</i></p>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Left Column: Spotify Playlist & Track Switcher -->
+    <div class="sidebar">
+      <div class="spotify-box">
+        <iframe 
+          data-testid="embed-iframe" 
+          style="border-radius:12px" 
+          src="https://open.spotify.com/embed/playlist/0x2NbJS2n6wBmxgeooDMDB?utm_source=generator&si=961639b357174533" 
+          width="100%" 
+          height="352" 
+          frameBorder="0" 
+          allowfullscreen="" 
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+          loading="lazy">
+        </iframe>
+      </div>
+
+      <div class="selector-box">
+        <h3>Detective Tracklist</h3>
+        <div class="track-list" id="trackList"></div>
+      </div>
+    </div>
+
+    <!-- Right Column: Clues, Interactive Quiz & Theory Breakdown -->
+    <div class="main-panel">
+      <div class="song-title-header">
+        <div>
+          <h2 id="songTitle">Select a track</h2>
+          <div class="artist" id="songArtist">Choose a case from the playlist to investigate</div>
+        </div>
+        <span class="tag" id="conceptTag">Concept</span>
+      </div>
+
+      <!-- Detective Mission / Listening Clue -->
+      <div class="clue-card">
+        <h4>🔍 Detective Ear Assignment</h4>
+        <p class="assignment-prompt" id="assignmentText"></p>
+      </div>
+
+      <!-- Ear Test Question -->
+      <div class="quiz-box">
+        <h4 style="color: #58a6ff; font-size: 0.85rem; text-transform: uppercase;">Ear Challenge: What technique is being demonstrated?</h4>
+        <div class="options-grid" id="optionsGrid"></div>
+      </div>
+
+      <!-- Book Explanation & Theory Breakdown -->
+      <div class="explanation-box" id="explanationBox">
+        <h4>💡 The Songwriter's Secret Revealed</h4>
+        <p id="explanationText"></p>
+        <span class="book-ref" id="bookRef"></span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Database of case studies mapped directly to key concepts in the text
+    const cases = [
+      {
+        title: "With Or Without You",
+        artist: "U2",
+        category: "Harmonic Loop & Texture",
+        tagClass: "tag-chord",
+        assignment: "Listen to the 4-chord sequence looping through the entire song (D – A – Bm – G). Notice how the song avoids monotony across 4 minutes without ever changing chords.",
+        options: [
+          "The guitar changes chords while the bass stays static",
+          "A repeating turnaround built by gradual dynamic layering and non-chord guitar texture",
+          "A 12-bar blues turnaround with altered dominants",
+          "The chords transpose up a half-step each chorus"
+        ],
+        correct: 1,
+        explanation: "As discussed in Section 4 and 5 ('The Loop'), U2 takes a standard I–V–vi–IV turnaround and turns it into an epic dynamic curve. Most bands would have the acoustic guitar chugging chords; here, Adam Clayton's bass implies the changes while The Edge plays textural guitar motifs around D, allowing the song to build purely through dynamics and vocal intensity.",
+        ref: "Section 4 (Disguising Turnarounds) & Section 5 (The Loop)"
+      },
+      {
+        title: "Stand By Me",
+        artist: "Ben E. King / Oasis",
+        category: "Turnarounds & Asymmetry",
+        tagClass: "tag-rhythm",
+        assignment: "Count the beats in the Oasis track right as the pre-chorus is about to land into the giant chorus. Or count Ben E. King's classic doo-wop progression.",
+        options: [
+          "A switch to double-time tempo",
+          "An inserted 3/4 bar breaking the 'tyranny of four' right before the chorus",
+          "A whole-tone key modulation",
+          "A 7/4 progressive rock time signature"
+        ],
+        correct: 1,
+        explanation: "In Section 6 ('The Principle of Rhythmic Asymmetry'), the text notes that pop music can fall into the predictable 'tyranny of four'. To resist this, songwriters insert a 3/4 bar at the end of a verse/pre-chorus. Oasis borrowed this trick in 'Stand By Me' (from Mott the Hoople's 'All The Young Dudes')—the 3/4 bar makes the chorus hit one beat earlier than expected, delivering a rush of energy.",
+        ref: "Section 6 (Rhythm: The Principle of Rhythmic Asymmetry)"
+      },
+      {
+        title: "Fell On Black Days",
+        artist: "Soundgarden",
+        category: "Odd Time Signatures",
+        tagClass: "tag-rhythm",
+        assignment: "Try tapping your foot in standard 4/4 to the main riff. Notice how the riff doesn't resolve where you expect it to.",
+        options: [
+          "It is played in 6/4 simple time, giving a languid pull",
+          "It alternates between 3/4 and 2/4 every second",
+          "It uses random polyrhythms with no time signature",
+          "It is played in 12/8 blues shuffle"
+        ],
+        correct: 0,
+        explanation: "Section 6 explains that while 4/4 dominates rock, odd meters create distinct weight. A 6/4 bar has a languid feel because the first beat has greater emphasis than two adjoining bars of 4/4 and 2/4. Soundgarden's 'Fell On Black Days' uses 6/4 to heighten the melancholy tension before resolving.",
+        ref: "Section 6 (Rhythm: Simple Time & Odd Meters)"
+      },
+      {
+        title: "Creep",
+        artist: "Radiohead",
+        category: "Reverse Polarity / Minor IV",
+        tagClass: "tag-chord",
+        assignment: "Listen to the chord progression in the verse and chorus: G – B – C – Cm. Focus specifically on the emotional shift when the 4th chord (Cm) arrives.",
+        options: [
+          "A tritone substitution",
+          "A circle-of-fifths modulation",
+          "Reverse polarity: using a minor IV (IVm) chord to evoke sudden sadness",
+          "An augmented 6th chord borrowed from classical harmony"
+        ],
+        correct: 2,
+        explanation: "In Section 3 (Group 7: Reverse Polarity), the author highlights the move from IV (C) to IVm (Cm) resolving back to I. Turning the major subdominant into a minor IV is a classic technique to evoke sudden, poignant romantic melodrama. Radiohead used this to unforgettable effect in 'Creep'.",
+        ref: "Section 3 (Chord Sequences: Reverse Polarity IV to IVm)"
+      },
+      {
+        title: "Close To You",
+        artist: "The Carpenters / Burt Bacharach",
+        category: "Melodic Tension",
+        tagClass: "tag-lyric",
+        assignment: "Listen to the vocal melody over the opening chord on the line 'Why do birds suddenly appear...'. Focus on whether Karen Carpenter's notes are inside or outside the harmony.",
+        options: [
+          "A flat-5 blues note",
+          "Chordal melody with a melodic leap to a tension note sitting outside the chord",
+          "A completely horizontal monotone melody",
+          "A descending chromatic pentatonic scale"
+        ],
+        correct: 1,
+        explanation: "In Section 7 ('Melody: Harmonizing Notes'), the author points out Burt Bacharach's mastery: opening with the leap E–G–D against a C chord. The notes E and G sit inside the C chord (root triad 1-3-5), but the top note D sits outside (the 2nd/9th degree), creating an expressive, yearning suspension.",
+        ref: "Section 7 (Melody: Harmonizing Notes & Vertical Leaps)"
+      },
+      {
+        title: "Smells Like Teen Spirit",
+        artist: "Nirvana",
+        category: "Ambiguous Sequences",
+        tagClass: "tag-chord",
+        assignment: "Listen to the famous 4-chord intro riff (F – Bb – Ab – Db). Try to determine if the song is strictly in one key.",
+        options: [
+          "A standard I–IV–V–I in F major",
+          "Harmonically dislocated sequence: V–I in Bb followed by V–I in Db",
+          "Strict modal Dorian progression",
+          "Doo-wop progression transposed down a tone"
+        ],
+        correct: 1,
+        explanation: "In Section 3 (Group 10 / Ambiguous Sequences), the author analyzes 'Smells Like Teen Spirit' (I – IV – bIII – bVI): Cobain creates harmonic disorientation by chaining two V–I movements from two different tonal centers (F to Bb, then Ab to Db), giving the riff its explosive asymmetry.",
+        ref: "Section 3 (Chord Sequences: Group 10)"
+      }
+    ];
+
+    let currentIndex = 0;
+
+    function renderTracklist() {
+      const container = document.getElementById('trackList');
+      container.innerHTML = '';
+      cases.forEach((item, index) => {
+        const btn = document.createElement('button');
+        btn.className = `track-btn ${index === currentIndex ? 'active' : ''}`;
+        btn.innerHTML = `<span><strong>${item.title}</strong></span><span style="font-size:0.75rem; color:var(--text-muted);">${item.artist}</span>`;
+        btn.onclick = () => loadCase(index);
+        container.appendChild(btn);
+      });
+    }
+
+    function loadCase(index) {
+      currentIndex = index;
+      const data = cases[index];
+
+      // Update Header & Tags
+      document.getElementById('songTitle').innerText = data.title;
+      document.getElementById('songArtist').innerText = data.artist;
+      const tag = document.getElementById('conceptTag');
+      tag.innerText = data.category;
+      tag.className = `tag ${data.tagClass}`;
+
+      // Update Assignment Prompt
+      document.getElementById('assignmentText').innerText = data.assignment;
+
+      // Update Quiz Options
+      const optionsGrid = document.getElementById('optionsGrid');
+      optionsGrid.innerHTML = '';
+      data.options.forEach((optText, i) => {
+        const optBtn = document.createElement('button');
+        optBtn.className = 'quiz-option';
+        optBtn.innerText = optText;
+        optBtn.onclick = () => checkAnswer(i, data.correct);
+        optionsGrid.appendChild(optBtn);
+      });
+
+      // Reset Explanation
+      const expBox = document.getElementById('explanationBox');
+      expBox.style.display = 'none';
+
+      renderTracklist();
+    }
+
+    function checkAnswer(selectedIndex, correctIndex) {
+      const buttons = document.querySelectorAll('.quiz-option');
+      buttons.forEach((btn, i) => {
+        btn.disabled = true;
+        if (i === correctIndex) {
+          btn.classList.add('correct');
+        } else if (i === selectedIndex) {
+          btn.classList.add('wrong');
+        }
+      });
+
+      // Show Book Explanation
+      const current = cases[currentIndex];
+      const expBox = document.getElementById('explanationBox');
+      document.getElementById('explanationText').innerText = current.explanation;
+      document.getElementById('bookRef').innerText = `📖 Reference: ${current.ref}`;
+      expBox.style.display = 'block';
+    }
+
+    // Initialize first case
+    loadCase(0);
+  </script>
+</body>
+</html>
