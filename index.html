@@ -13,6 +13,7 @@
       --accent-glow: rgba(139, 92, 246, 0.4);
       --accent-pink: #ec4899;
       --accent-cyan: #38bdf8;
+      --accent-green: #10b981;
       --text-main: #f1f5f9;
       --text-muted: #94a3b8;
     }
@@ -37,7 +38,7 @@
 
     .hub-container {
       width: 100%;
-      max-width: 720px;
+      max-width: 980px;
       text-align: center;
     }
 
@@ -57,7 +58,7 @@
     header p {
       color: var(--text-muted);
       font-size: 1.05rem;
-      max-width: 520px;
+      max-width: 600px;
       margin: 0 auto;
       line-height: 1.5;
     }
@@ -104,6 +105,10 @@
       background: linear-gradient(90deg, #ec4899, #a855f7);
     }
 
+    .hub-card.detective::before {
+      background: linear-gradient(90deg, #10b981, #06b6d4);
+    }
+
     .hub-card:hover {
       transform: translateY(-4px);
       border-color: #3b4261;
@@ -116,6 +121,10 @@
 
     .hub-card.playbook:hover {
       box-shadow: 0 12px 30px rgba(236, 72, 153, 0.2);
+    }
+
+    .hub-card.detective:hover {
+      box-shadow: 0 12px 30px rgba(16, 185, 129, 0.2);
     }
 
     .icon-badge {
@@ -155,6 +164,7 @@
       border: none;
       pointer-events: none;
       transition: all 0.2s ease;
+      margin-top: auto;
     }
 
     .hub-card.scp .btn-action {
@@ -167,6 +177,12 @@
       background: rgba(236, 72, 153, 0.15);
       color: var(--accent-pink);
       border: 1px solid rgba(236, 72, 153, 0.4);
+    }
+
+    .hub-card.detective .btn-action {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent-green);
+      border: 1px solid rgba(16, 185, 129, 0.4);
     }
 
     .hub-card:hover .btn-action {
@@ -185,7 +201,7 @@
   <div class="hub-container">
     <header>
       <h1>Shoegaze Guitar Workbench</h1>
-      <p>Interactive chord libraries, fretboard visualizations, and rhythm exercises.</p>
+      <p>Interactive chord libraries, fretboard visualizations, and listening detective exercises.</p>
     </header>
 
     <div class="button-grid">
@@ -208,10 +224,20 @@
           Open Playbook <span>&rarr;</span>
         </div>
       </a>
+
+      <!-- Button 3: Listening Detective -->
+      <a href="detective.html" class="hub-card detective">
+        <div class="icon-badge">🔍</div>
+        <div class="card-title">Listening Detective</div>
+        <div class="card-desc">Spotify player companion, turnaround challenges, odd meters, and active ear training.</div>
+        <div class="btn-action">
+          Open Detective <span>&rarr;</span>
+        </div>
+      </a>
     </div>
 
     <footer>
-      <span>Open-string voicings • Moveable shapes • Dream pop harmonies</span>
+      <span>Open-string voicings • Moveable shapes • Songwriting ear training</span>
     </footer>
   </div>
 
