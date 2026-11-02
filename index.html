@@ -14,7 +14,7 @@
       --accent-pink: #ec4899;
       --accent-cyan: #38bdf8;
       --accent-green: #10b981;
-      --accent-purple: #a855f7;
+      --accent-amber: #f59e0b;
       --text-main: #f1f5f9;
       --text-muted: #94a3b8;
     }
@@ -110,8 +110,8 @@
       background: linear-gradient(90deg, #10b981, #06b6d4);
     }
 
-    .hub-card.fretboard::before {
-      background: linear-gradient(90deg, #a855f7, #f472b6);
+    .hub-card.lyf::before {
+      background: linear-gradient(90deg, #f59e0b, #8b5cf6);
     }
 
     .hub-card:hover {
@@ -132,8 +132,8 @@
       box-shadow: 0 12px 30px rgba(16, 185, 129, 0.2);
     }
 
-    .hub-card.fretboard:hover {
-      box-shadow: 0 12px 30px rgba(168, 85, 247, 0.2);
+    .hub-card.lyf:hover {
+      box-shadow: 0 12px 30px rgba(245, 158, 11, 0.2);
     }
 
     .icon-badge {
@@ -194,10 +194,10 @@
       border: 1px solid rgba(16, 185, 129, 0.4);
     }
 
-    .hub-card.fretboard .btn-action {
-      background: rgba(168, 85, 247, 0.15);
-      color: var(--accent-purple);
-      border: 1px solid rgba(168, 85, 247, 0.4);
+    .hub-card.lyf .btn-action {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--accent-amber);
+      border: 1px solid rgba(245, 158, 11, 0.4);
     }
 
     .hub-card:hover .btn-action {
@@ -209,3 +209,62 @@
       color: #64748b;
       font-size: 0.82rem;
     }
+  </style>
+</head>
+<body>
+
+  <div class="hub-container">
+    <header>
+      <h1>Shoegaze Guitar Workbench</h1>
+      <p>Interactive chord libraries, fretboard visualizations, and listening detective exercises.</p>
+    </header>
+
+    <div class="button-grid">
+      <!-- Button 1: Shoegaze Chord Progressions -->
+      <a href="scp.htm" class="hub-card scp">
+        <div class="icon-badge">🎸</div>
+        <div class="card-title">Shoegaze Chord Progressions</div>
+        <div class="card-desc">Browse progressions, chord library sequences, and harmonic frameworks.</div>
+        <div class="btn-action">
+          Open App <span>&rarr;</span>
+        </div>
+      </a>
+
+      <!-- Button 2: Shoegaze Playbook -->
+      <a href="playbook.html" class="hub-card playbook">
+        <div class="icon-badge">📖</div>
+        <div class="card-title">Shoegaze Playbook</div>
+        <div class="card-desc">Interactive fretboard explorer, moveable shapes, audio synth, and step-by-step phases.</div>
+        <div class="btn-action">
+          Open Playbook <span>&rarr;</span>
+        </div>
+      </a>
+
+      <!-- Button 3: Listening Detective -->
+      <a href="detective.html" class="hub-card detective">
+        <div class="icon-badge">🔍</div>
+        <div class="card-title">Listening Detective</div>
+        <div class="card-desc">Spotify player companion, turnaround challenges, odd meters, and active ear training.</div>
+        <div class="btn-action">
+          Open Detective <span>&rarr;</span>
+        </div>
+      </a>
+
+      <!-- Button 4: Learn Your Fretboard -->
+      <a href="lyf.html" class="hub-card lyf">
+        <div class="icon-badge">🧭</div>
+        <div class="card-title">Learn Your Fretboard</div>
+        <div class="card-desc">Guided book modules, vertical &amp; horizontal landmarks, octave shapes, and active neck quiz.</div>
+        <div class="btn-action">
+          Open Trainer <span>&rarr;</span>
+        </div>
+      </a>
+    </div>
+
+    <footer>
+      <span>Open-string voicings • Moveable shapes • Fretboard mastery • Songwriting ear training</span>
+    </footer>
+  </div>
+
+</body>
+</html>
