@@ -1,332 +1,1398 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Learn Your Fretboard - Interactive Tool</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        .fretboard-bg {
-            background: linear-gradient(90deg, #4b2e1e 0%, #3e2723 50%, #4b2e1e 100%);
-        }
-        /* Custom toggle switch styling */
-        .toggle-checkbox:checked { right: 0; border-color: #3b82f6; }
-        .toggle-checkbox:checked + .toggle-label { background-color: #3b82f6; }
-        .toggle-checkbox:checked + .toggle-label:after { transform: translateX(100%); }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Learn Your Fretboard | Interactive Course & Workbench</title>
+  <style>
+    :root {
+      --bg-main: #0b0c14;
+      --bg-card: #141726;
+      --bg-panel: #1b1f33;
+      --text-main: #e2e8f0;
+      --text-muted: #94a3b8;
+      --accent-purple: #a855f7;
+      --accent-pink: #ec4899;
+      --accent-cyan: #06b6d4;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --border-color: #262b44;
+      --glow-purple: 0 0 15px rgba(168, 85, 247, 0.35);
+      --glow-cyan: 0 0 15px rgba(6, 182, 212, 0.35);
+      --glow-pink: 0 0 15px rgba(236, 72, 153, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      padding-bottom: 60px;
+    }
+
+    /* Top Workbench Navigation */
+    .top-nav {
+      background: rgba(20, 23, 38, 0.95);
+      border-bottom: 1px solid var(--border-color);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(8px);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: 0.5px;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple), var(--accent-pink));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .nav-link {
+      text-decoration: none;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+    }
+
+    .nav-link:hover {
+      color: var(--text-main);
+      border-color: var(--border-color);
+      background: var(--bg-panel);
+    }
+
+    .nav-link.active {
+      color: var(--accent-cyan);
+      border-color: rgba(6, 182, 212, 0.4);
+      background: rgba(6, 182, 212, 0.1);
+      box-shadow: var(--glow-cyan);
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 1280px;
+      margin: 24px auto;
+      padding: 0 20px;
+    }
+
+    /* Header & Overall Progress */
+    .hero-card {
+      background: linear-gradient(135deg, var(--bg-card) 0%, #191c30 100%);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .hero-info h1 {
+      font-size: 1.75rem;
+      margin-bottom: 6px;
+      color: #fff;
+    }
+
+    .hero-info p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .progress-widget {
+      min-width: 280px;
+      background: var(--bg-main);
+      padding: 16px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--accent-cyan);
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 10px;
+      background: var(--bg-panel);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple), var(--accent-pink));
+      transition: width 0.4s ease;
+    }
+
+    /* Interactive Fretboard Visualizer Card */
+    .fretboard-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .fretboard-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .control-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .control-label {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      font-weight: 700;
+      margin-right: 4px;
+    }
+
+    .btn {
+      background: var(--bg-panel);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 7px 13px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn:hover {
+      border-color: var(--accent-purple);
+      color: #fff;
+    }
+
+    .btn.active {
+      background: rgba(168, 85, 247, 0.2);
+      border-color: var(--accent-purple);
+      color: #fff;
+      box-shadow: var(--glow-purple);
+    }
+
+    .btn-cyan.active {
+      background: rgba(6, 182, 212, 0.2);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+      box-shadow: var(--glow-cyan);
+    }
+
+    .btn-pink {
+      background: rgba(236, 72, 153, 0.15);
+      border-color: var(--accent-pink);
+      color: #fff;
+    }
+
+    .btn-pink:hover, .btn-pink.active {
+      background: var(--accent-pink);
+      color: #fff;
+      box-shadow: var(--glow-pink);
+    }
+
+    /* Fretboard Grid */
+    .fretboard-wrapper {
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+
+    .fretboard {
+      min-width: 950px;
+      background: #10121d;
+      border: 2px solid #2d3354;
+      border-radius: 8px;
+      padding: 12px 16px;
+      position: relative;
+    }
+
+    .fret-numbers {
+      display: grid;
+      grid-template-columns: 50px repeat(12, 1fr);
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .fret-number.landmark {
+      color: var(--accent-cyan);
+    }
+
+    .string-row {
+      display: grid;
+      grid-template-columns: 50px repeat(12, 1fr);
+      align-items: center;
+      height: 38px;
+      position: relative;
+    }
+
+    /* Horizontal string wire */
+    .string-row::before {
+      content: "";
+      position: absolute;
+      left: 50px;
+      right: 0;
+      top: 50%;
+      height: var(--string-thickness, 2px);
+      background: linear-gradient(90deg, #64748b, #475569);
+      z-index: 1;
+      transform: translateY(-50%);
+    }
+
+    .fret-cell {
+      height: 100%;
+      border-right: 2px solid #2a304d;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+      cursor: pointer;
+    }
+
+    .fret-cell.open-nut {
+      border-right: 5px solid #cbd5e1;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .fret-cell.anchor-col {
+      background: rgba(6, 182, 212, 0.06);
+    }
+
+    .note-badge {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 0.78rem;
+      font-weight: 700;
+      background: var(--bg-panel);
+      color: var(--text-main);
+      border: 1px solid #3b4268;
+      transition: all 0.18s ease;
+      user-select: none;
+    }
+
+    .fret-cell:hover .note-badge {
+      transform: scale(1.15);
+      border-color: var(--accent-cyan);
+    }
+
+    .note-badge.hidden-note {
+      opacity: 0.12;
+      color: transparent;
+    }
+
+    .note-badge.natural {
+      background: #1e243d;
+      border-color: var(--accent-purple);
+      color: #fff;
+    }
+
+    .note-badge.half-step-pair {
+      background: rgba(236, 72, 153, 0.25);
+      border-color: var(--accent-pink);
+      color: #fff;
+      box-shadow: var(--glow-pink);
+    }
+
+    .note-badge.anchor-highlight {
+      background: rgba(6, 182, 212, 0.28);
+      border-color: var(--accent-cyan);
+      color: #fff;
+      box-shadow: var(--glow-cyan);
+    }
+
+    .note-badge.octave-highlight {
+      background: var(--accent-green);
+      border-color: #fff;
+      color: #052e16;
+      font-weight: 800;
+      box-shadow: 0 0 14px rgba(16, 185, 129, 0.6);
+      transform: scale(1.12);
+    }
+
+    .note-badge.quiz-target {
+      background: var(--accent-amber);
+      border-color: #fff;
+      color: #000;
+      font-weight: 900;
+      animation: pulse 1.2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.18); }
+    }
+
+    /* Main Workspace Grid: Sidebar + Active Module */
+    .workspace-grid {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 920px) {
+      .workspace-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Sidebar Module List */
+    .module-sidebar {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      height: fit-content;
+    }
+
+    .sidebar-title {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      padding: 0 8px;
+      font-weight: 700;
+    }
+
+    .module-tab {
+      width: 100%;
+      text-align: left;
+      background: var(--bg-main);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s ease;
+      color: var(--text-main);
+    }
+
+    .module-tab:hover {
+      border-color: var(--accent-purple);
+    }
+
+    .module-tab.active {
+      background: rgba(168, 85, 247, 0.14);
+      border-color: var(--accent-purple);
+      box-shadow: var(--glow-purple);
+    }
+
+    .module-tab-left {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .module-num {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      color: var(--accent-cyan);
+      font-weight: 700;
+      letter-spacing: 0.6px;
+    }
+
+    .module-name {
+      font-size: 0.92rem;
+      font-weight: 700;
+    }
+
+    .status-pill {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      color: transparent;
+      flex-shrink: 0;
+    }
+
+    .module-tab.completed .status-pill {
+      background: var(--accent-green);
+      border-color: var(--accent-green);
+      color: #052e16;
+      font-weight: 900;
+    }
+
+    /* Content Panel */
+    .module-content {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 28px;
+    }
+
+    .module-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      padding-bottom: 18px;
+      margin-bottom: 22px;
+      border-bottom: 1px solid var(--border-color);
+      flex-wrap: wrap;
+    }
+
+    .module-header h2 {
+      font-size: 1.5rem;
+      color: #fff;
+    }
+
+    .module-tag {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      background: rgba(6, 182, 212, 0.12);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      padding: 3px 10px;
+      border-radius: 99px;
+      margin-bottom: 6px;
+    }
+
+    .complete-btn {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .complete-btn.is-complete {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: var(--accent-green);
+      color: var(--accent-green);
+    }
+
+    /* Concept Cards inside Module */
+    .concept-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .concept-box {
+      background: var(--bg-main);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 18px;
+    }
+
+    .concept-box h3 {
+      font-size: 1rem;
+      color: var(--accent-cyan);
+      margin-bottom: 8px;
+    }
+
+    .concept-box p, .concept-box li {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .concept-box ul {
+      padding-left: 18px;
+      margin-top: 8px;
+    }
+
+    .mnemonic-highlight {
+      color: var(--accent-pink);
+      font-weight: 700;
+    }
+
+    /* Sub-task Checklist */
+    .checklist-box {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 18px;
+      margin-top: 20px;
+    }
+
+    .checklist-box h4 {
+      font-size: 0.95rem;
+      margin-bottom: 12px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .check-item:last-child {
+      border-bottom: none;
+    }
+
+    .check-item input[type="checkbox"] {
+      accent-color: var(--accent-cyan);
+      width: 17px;
+      height: 17px;
+      cursor: pointer;
+    }
+
+    .check-item.checked span {
+      text-decoration: line-through;
+      color: var(--text-muted);
+    }
+
+    /* Interactive Trainer Box */
+    .trainer-panel {
+      background: linear-gradient(135deg, #181b2e, #121524);
+      border: 1px solid var(--accent-purple);
+      border-radius: 10px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+
+    .answer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(56px, 1fr));
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .ans-btn {
+      background: var(--bg-main);
+      border: 1px solid var(--border-color);
+      color: #fff;
+      padding: 10px;
+      border-radius: 6px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .ans-btn:hover {
+      border-color: var(--accent-cyan);
+      background: rgba(6, 182, 212, 0.15);
+    }
+
+    .external-bonus-card {
+      background: rgba(6, 182, 212, 0.08);
+      border: 1px solid var(--accent-cyan);
+      border-radius: 10px;
+      padding: 18px;
+      margin-top: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+  </style>
 </head>
-<body class="bg-gray-50 min-h-screen text-gray-800">
+<body>
 
-    <div class="max-w-6xl mx-auto px-4 py-12">
-        
-        <!-- Header -->
-        <header class="text-center mb-10">
-            <h1 class="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl mb-4">Learn Your Fretboard</h1>
-            <p class="text-lg text-gray-600 max-w-2xl mx-auto">
-                Master the natural notes, visualize octave shapes, and test your recall across the first 12 frets. 
-                Based on your daily practice plan.
-            </p>
-            <div class="mt-6">
-                <a href="index.html" class="text-blue-600 hover:text-blue-800 font-semibold flex items-center justify-center gap-2">
-                    &larr; Back to Practice Resources
-                </a>
-            </div>
-        </header>
+  <!-- Unified Workbench Navigation -->
+  <nav class="top-nav">
+    <div class="brand">
+      <span>🎸 SHOEGAZE & FRETBOARD WORKBENCH</span>
+    </div>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">🏠 Hub</a>
+      <a href="scp.htm" class="nav-link">🎹 Chord Progressions</a>
+      <a href="playbook.html" class="nav-link">📖 Shoegaze Playbook</a>
+      <a href="detective.html" class="nav-link">🎧 Listening Detective</a>
+      <a href="fretboard.html" class="nav-link active">🧭 Learn Your Fretboard</a>
+    </div>
+  </nav>
 
-        <!-- Control Panel -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-8 flex flex-col md:flex-row items-center justify-between gap-6">
-            
-            <!-- Toggles -->
-            <div class="flex flex-col sm:flex-row gap-6">
-                <!-- Show Natural Notes Toggle -->
-                <div class="flex items-center gap-3">
-                    <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
-                        <input type="checkbox" name="toggleNotes" id="toggleNotes" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-transform duration-200 ease-in-out border-gray-300 z-10 top-0 left-0"/>
-                        <label for="toggleNotes" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer transition-colors duration-200 ease-in-out"></label>
-                    </div>
-                    <label for="toggleNotes" class="font-semibold text-gray-700 cursor-pointer select-none">Show Natural Notes</label>
-                </div>
-
-                <!-- Quiz Mode Toggle -->
-                <div class="flex items-center gap-3">
-                    <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
-                        <input type="checkbox" name="toggleQuiz" id="toggleQuiz" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-transform duration-200 ease-in-out border-gray-300 z-10 top-0 left-0"/>
-                        <label for="toggleQuiz" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer transition-colors duration-200 ease-in-out"></label>
-                    </div>
-                    <label for="toggleQuiz" class="font-semibold text-gray-700 cursor-pointer select-none">Quiz Mode</label>
-                </div>
-            </div>
-
-            <!-- Quiz Status Panel -->
-            <div id="quiz-panel" class="hidden flex-1 bg-gray-50 rounded-xl p-4 border border-gray-200 text-center flex flex-col justify-center min-w-[250px]">
-                <p id="quiz-prompt" class="text-lg font-bold text-gray-800">Activate Quiz Mode to start!</p>
-                <p id="quiz-feedback" class="text-sm font-semibold mt-1 h-5 text-transparent">.</p>
-            </div>
+  <div class="container">
+    <!-- Hero & Master Progress Bar -->
+    <div class="hero-card">
+      <div class="hero-info">
+        <h1>Learn Your Fretboard: Guided System</h1>
+        <p>Interactive Memorization Curriculum • Horizontal & Vertical Landmarks • Octave Mapping • Daily Drills</p>
+      </div>
+      <div class="progress-widget">
+        <div class="progress-header">
+          <span>COURSE COMPLETION</span>
+          <span id="progress-text">0 / 6 Modules (0%)</span>
         </div>
-
-        <!-- Fretboard Container -->
-        <div class="overflow-x-auto bg-white p-4 sm:p-8 rounded-2xl shadow-lg border border-gray-200">
-            <!-- The Fretboard -->
-            <div class="relative w-full fretboard-bg rounded-md min-w-[800px] border-4 border-[#3e2723] shadow-inner select-none">
-                
-                <!-- Fret numbers above -->
-                <div class="absolute -top-7 left-0 right-0 flex text-xs font-bold text-gray-500">
-                    <div class="w-12 text-center">0</div>
-                    <div class="flex-1 text-center">1</div>
-                    <div class="flex-1 text-center">2</div>
-                    <div class="flex-1 text-center">3</div>
-                    <div class="flex-1 text-center">4</div>
-                    <div class="flex-1 text-center">5</div>
-                    <div class="flex-1 text-center">6</div>
-                    <div class="flex-1 text-center">7</div>
-                    <div class="flex-1 text-center">8</div>
-                    <div class="flex-1 text-center">9</div>
-                    <div class="flex-1 text-center">10</div>
-                    <div class="flex-1 text-center">11</div>
-                    <div class="flex-1 text-center">12</div>
-                </div>
-
-                <!-- Background Layers: Frets and Inlays -->
-                <div class="absolute inset-0 flex pointer-events-none z-0">
-                    <!-- Nut -->
-                    <div class="w-12 border-r-8 border-gray-300 bg-gray-800 bg-opacity-20"></div> 
-                    <!-- Frets 1 to 12 -->
-                    <div class="flex-1 border-r-2 border-gray-400 flex items-center justify-center"></div>
-                    <div class="flex-1 border-r-2 border-gray-400 flex items-center justify-center"></div>
-                    <div class="flex-1 border-r-2 border-gray-400 flex items-center justify-center"><div class="w-5 h-5 rounded-full bg-white opacity-40"></div></div> <!-- 3rd fret -->
-                    <div class="flex-1 border-r-2 border-gray-400 flex items-center justify-center"></div>
-                    <div class="flex-1 border-r-2 border-gray-400 flex items-center justify-center"><div class="w-5 h-5 rounded-full bg-white opacity-40"></div></div> <!-- 5th fret -->
-                    <div class="flex-1 border-r-2 border-gray-400 flex items-center justify-center"></div>
-                    <div class="flex-1 border-r-2 border-gray-400 flex items-center justify-center"><div class="w-5 h-5 rounded-full bg-white opacity-40"></div></div> <!-- 7th fret -->
-                    <div class="flex-1 border-r-2 border-gray-400 flex items-center justify-center"></div>
-                    <div class="flex-1 border-r-2 border-gray-400 flex items-center justify-center"><div class="w-5 h-5 rounded-full bg-white opacity-40"></div></div> <!-- 9th fret -->
-                    <div class="flex-1 border-r-2 border-gray-400 flex items-center justify-center"></div>
-                    <div class="flex-1 border-r-2 border-gray-400 flex items-center justify-center"></div>
-                    <div class="flex-1 border-r-2 border-gray-400 flex flex-col gap-6 items-center justify-center"> <!-- 12th fret -->
-                        <div class="w-5 h-5 rounded-full bg-white opacity-40"></div>
-                        <div class="w-5 h-5 rounded-full bg-white opacity-40"></div>
-                    </div>
-                </div>
-
-                <!-- Clickable Strings Layer -->
-                <div id="strings-container" class="relative z-10 flex flex-col justify-between py-2 gap-y-1">
-                    <!-- JavaScript will populate the strings and frets here -->
-                </div>
-            </div>
-            
-            <!-- Tuning labels (Left side) -->
-            <div id="tuning-labels" class="hidden md:flex flex-col justify-between absolute left-0 top-0 bottom-0 py-2 gap-y-1 text-sm font-bold text-gray-500 transform -translate-x-full pr-4">
-                <!-- Populated by JS -->
-            </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progress-fill"></div>
         </div>
-
+      </div>
     </div>
 
-    <script>
-        // Constants & Data
-        const standardTuning = ['E', 'B', 'G', 'D', 'A', 'E']; // 1st string (High E) to 6th string (Low E)
-        const stringNames = ['High E (1st)', 'B (2nd)', 'G (3rd)', 'D (4th)', 'A (5th)', 'Low E (6th)'];
-        const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-        const fretsCount = 12;
+    <!-- Interactive Fretboard Map & Audio Synth -->
+    <div class="fretboard-card">
+      <div class="fretboard-controls">
+        <div class="control-group">
+          <span class="control-label">Overlays:</span>
+          <button class="btn active" id="btn-natural" onclick="setOverlay('natural')">Natural Notes</button>
+          <button class="btn" id="btn-halfsteps" onclick="setOverlay('halfsteps')">B–C & E–F Half-Steps</button>
+          <button class="btn btn-cyan" id="btn-anchors" onclick="setOverlay('anchors')">Vertical Anchors (3/5/7/10)</button>
+          <button class="btn" id="btn-all" onclick="setOverlay('all')">All Chromatic</button>
+          <button class="btn" id="btn-blank" onclick="setOverlay('blank')">Blank Neck (Test)</button>
+        </div>
+        <div class="control-group">
+          <span class="control-label">Octave Root:</span>
+          <select id="octave-root-select" class="btn" onchange="highlightOctaveRoot(this.value)">
+            <option value="">Off</option>
+            <option value="C">C Octaves</option>
+            <option value="D">D Octaves</option>
+            <option value="E">E Octaves</option>
+            <option value="F">F Octaves</option>
+            <option value="G">G Octaves</option>
+            <option value="A">A Octaves</option>
+            <option value="B">B Octaves</option>
+          </select>
+          <button class="btn btn-pink" id="quiz-toggle-btn" onclick="toggleNeckQuiz()">🎯 Start Neck Quiz</button>
+        </div>
+      </div>
 
-        // State
-        let isShowNotesActive = false;
-        let isQuizActive = false;
-        let quizTargetNote = null;
-        let quizTargetStringIndex = null;
-        
-        // DOM Elements
-        const stringsContainer = document.getElementById('strings-container');
-        const toggleNotesBtn = document.getElementById('toggleNotes');
-        const toggleQuizBtn = document.getElementById('toggleQuiz');
-        const quizPanel = document.getElementById('quiz-panel');
-        const quizPrompt = document.getElementById('quiz-prompt');
-        const quizFeedback = document.getElementById('quiz-feedback');
+      <div class="fretboard-wrapper">
+        <div class="fretboard" id="fretboard-container">
+          <!-- Dynamically populated by JS -->
+        </div>
+      </div>
 
-        // Initialization
-        function initFretboard() {
-            stringsContainer.innerHTML = '';
-            
-            standardTuning.forEach((openNote, stringIdx) => {
-                const stringDiv = document.createElement('div');
-                stringDiv.className = 'flex relative group items-center';
-                
-                // Visual string line
-                const lineThickness = [1.5, 2, 2.5, 3.5, 4.5, 5.5][stringIdx]; 
-                const line = document.createElement('div');
-                line.className = 'absolute left-0 right-0 bg-gradient-to-b from-gray-300 to-gray-400 pointer-events-none drop-shadow-sm';
-                line.style.height = `${lineThickness}px`;
-                stringDiv.appendChild(line);
+      <!-- Active Quiz Prompt Bar (Hidden unless Quiz is active) -->
+      <div id="quiz-banner" class="trainer-panel" style="display:none; margin-top: 14px; margin-bottom: 0;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <div>
+            <strong style="color:var(--accent-amber);">⚡ FRETBOARD RECALL QUIZ:</strong>
+            <span id="quiz-prompt-text" style="margin-left:8px;">Identify the highlighted pulsing note on the fretboard!</span>
+          </div>
+          <div id="quiz-score" style="font-weight:700; color:var(--accent-cyan);">Score: 0 / 0</div>
+        </div>
+        <div class="answer-grid" id="quiz-buttons"></div>
+      </div>
+    </div>
 
-                // Create frets for this string
-                for (let fret = 0; fret <= fretsCount; fret++) {
-                    const noteIndex = (chromaticScale.indexOf(openNote) + fret) % 12;
-                    const note = chromaticScale[noteIndex];
-                    const isNatural = !note.includes('#');
-                    
-                    const fretCell = document.createElement('div');
-                    // Style: 0 fret is a bit wider visually acting as the open string area
-                    fretCell.className = `fret-cell cursor-pointer flex items-center justify-center h-12 ${fret === 0 ? 'w-12 bg-black bg-opacity-20' : 'flex-1'} hover:bg-white hover:bg-opacity-25 transition-all z-20`;
-                    
-                    fretCell.dataset.note = note;
-                    fretCell.dataset.fret = fret;
-                    fretCell.dataset.string = stringIdx;
-                    fretCell.dataset.isNatural = isNatural;
+    <!-- Main Course Workspace -->
+    <div class="workspace-grid">
+      <!-- Left Sidebar: Book Modules -->
+      <aside class="module-sidebar">
+        <div class="sidebar-title">Book Curriculum Modules</div>
+        <div id="module-list"></div>
+      </aside>
 
-                    // Note Indicator Bubble
-                    const noteLabel = document.createElement('div');
-                    noteLabel.className = `note-label opacity-0 w-8 h-8 flex items-center justify-center rounded-full text-white text-sm font-extrabold pointer-events-none shadow-md transform scale-50 transition-all duration-200 ease-out`;
-                    
-                    if (isNatural) {
-                        noteLabel.classList.add('bg-blue-600', 'ring-2', 'ring-white');
-                        noteLabel.dataset.natural = "true";
-                    } else {
-                        noteLabel.classList.add('bg-gray-800');
-                    }
-                    
-                    noteLabel.innerText = note;
-                    fretCell.appendChild(noteLabel);
-                    
-                    // Click handler
-                    fretCell.addEventListener('click', () => handleFretClick(fretCell, stringIdx, note, fret));
-                    
-                    stringDiv.appendChild(fretCell);
-                }
-                stringsContainer.appendChild(stringDiv);
-            });
+      <!-- Right Area: Active Module Lesson & Checklists -->
+      <main class="module-content" id="module-viewer">
+        <!-- Rendered by JS -->
+      </main>
+    </div>
+  </div>
+
+  <script>
+    /**************************************************************
+     * 1. GUITAR FRETBOARD DATA & WEB AUDIO SYNTHESIZER
+     **************************************************************/
+    const CHROMATIC = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    const NATURAL_NOTES = new Set(['C', 'D', 'E', 'F', 'G', 'A', 'B']);
+    const HALF_STEP_NOTES = new Set(['B', 'C', 'E', 'F']);
+    const ANCHOR_FRETS = new Set([3, 5, 7, 10]);
+
+    // Standard tuning from String 1 (High E) to String 6 (Low E)
+    const STRINGS = [
+      { num: 1, name: 'e', openNote: 'E', openMidi: 64, thickness: '1.5px' },
+      { num: 2, name: 'B', openNote: 'B', openMidi: 59, thickness: '2px' },
+      { num: 3, name: 'G', openNote: 'G', openMidi: 55, thickness: '2.4px' },
+      { num: 4, name: 'D', openNote: 'D', openMidi: 50, thickness: '3px' },
+      { num: 5, name: 'A', openNote: 'A', openMidi: 45, thickness: '3.6px' },
+      { num: 6, name: 'E', openNote: 'E', openMidi: 40, thickness: '4.2px' }
+    ];
+
+    let audioCtx = null;
+    let droneOsc = null;
+    let droneGain = null;
+    let currentOverlay = 'natural';
+    let currentOctaveRoot = '';
+    let quizActive = false;
+    let quizTarget = null;
+    let quizCorrect = 0;
+    let quizTotal = 0;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function midiToFreq(midi) {
+      return 440 * Math.pow(2, (midi - 69) / 12);
+    }
+
+    function playNoteAudio(midi) {
+      initAudio();
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const osc2 = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = 'triangle';
+      osc2.type = 'sine';
+      const freq = midiToFreq(midi);
+      osc.frequency.setValueAtTime(freq, now);
+      osc2.frequency.setValueAtTime(freq * 2, now); // subtle harmonic overtone
+
+      gain.gain.setValueAtTime(0.28, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 1.4);
+
+      osc.connect(gain);
+      osc2.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start(now);
+      osc2.start(now);
+      osc.stop(now + 1.45);
+      osc2.stop(now + 1.45);
+    }
+
+    function getNoteName(openNote, fret) {
+      const startIndex = CHROMATIC.indexOf(openNote);
+      return CHROMATIC[(startIndex + fret) % 12];
+    }
+
+    /**************************************************************
+     * 2. RENDER INTERACTIVE FRETBOARD
+     **************************************************************/
+    function renderFretboard() {
+      const container = document.getElementById('fretboard-container');
+      let html = `<div class="fret-numbers"><div>OPEN</div>`;
+      for (let f = 1; f <= 12; f++) {
+        const isLandmark = ANCHOR_FRETS.has(f) || f === 12;
+        html += `<div class="fret-number ${isLandmark ? 'landmark' : ''}">${f}</div>`;
+      }
+      html += `</div>`;
+
+      STRINGS.forEach((str) => {
+        html += `<div class="string-row" style="--string-thickness:${str.thickness}">`;
+        for (let fret = 0; fret <= 12; fret++) {
+          const note = getNoteName(str.openNote, fret);
+          const midi = str.openMidi + fret;
+          const isNatural = NATURAL_NOTES.has(note);
+          const isHalfStep = HALF_STEP_NOTES.has(note);
+          const isAnchorFret = ANCHOR_FRETS.has(fret);
+
+          let badgeClasses = ['note-badge'];
+          let cellClasses = ['fret-cell'];
+          if (fret === 0) cellClasses.push('open-nut');
+          if (isAnchorFret && currentOverlay === 'anchors') cellClasses.push('anchor-col');
+
+          // Determine visibility & styling based on active overlay
+          if (quizActive && quizTarget && quizTarget.string === str.num && quizTarget.fret === fret) {
+            badgeClasses.push('quiz-target');
+          } else if (currentOverlay === 'blank') {
+            badgeClasses.push('hidden-note');
+          } else if (currentOverlay === 'natural') {
+            if (isNatural) badgeClasses.push('natural');
+            else badgeClasses.push('hidden-note');
+          } else if (currentOverlay === 'halfsteps') {
+            if (isHalfStep) badgeClasses.push('half-step-pair');
+            else if (isNatural) badgeClasses.push('natural');
+            else badgeClasses.push('hidden-note');
+          } else if (currentOverlay === 'anchors') {
+            if (isAnchorFret) badgeClasses.push('anchor-highlight');
+            else if (fret === 0 || fret === 12) badgeClasses.push('natural');
+            else badgeClasses.push('hidden-note');
+          } else if (currentOverlay === 'all') {
+            if (isNatural) badgeClasses.push('natural');
+          }
+
+          if (currentOctaveRoot && note === currentOctaveRoot) {
+            badgeClasses = ['note-badge', 'octave-highlight'];
+          }
+
+          const displayLabel = (quizActive && quizTarget && quizTarget.string === str.num && quizTarget.fret === fret)
+            ? '?'
+            : note;
+
+          html += `
+            <div class="${cellClasses.join(' ')}" onclick="onFretClick(${str.num}, ${fret}, '${note}', ${midi})">
+              <div class="${badgeClasses.join(' ')}" id="badge-${str.num}-${fret}">${displayLabel}</div>
+            </div>
+          `;
         }
+        html += `</div>`;
+      });
 
-        // Interaction Handlers
-        function handleFretClick(cell, stringIdx, note, fret) {
-            // Flash effect
-            const label = cell.querySelector('.note-label');
-            
-            if (isQuizActive) {
-                checkQuizAnswer(stringIdx, note, label);
-            } else {
-                // Free play mode: Just show the note temporarily if 'Show Notes' is off
-                if (!isShowNotesActive || !label.dataset.natural) {
-                    showTemporarily(label);
-                }
-            }
+      container.innerHTML = html;
+    }
+
+    function onFretClick(stringNum, fret, note, midi) {
+      playNoteAudio(midi);
+      const badge = document.getElementById(`badge-${stringNum}-${fret}`);
+      if (badge && badge.classList.contains('hidden-note')) {
+        badge.classList.remove('hidden-note');
+        badge.classList.add('anchor-highlight');
+        setTimeout(() => renderFretboard(), 1200);
+      }
+    }
+
+    function setOverlay(mode) {
+      currentOverlay = mode;
+      ['natural', 'halfsteps', 'anchors', 'all', 'blank'].forEach(id => {
+        const el = document.getElementById('btn-' + id);
+        if (el) el.classList.toggle('active', id === mode);
+      });
+      renderFretboard();
+    }
+
+    function highlightOctaveRoot(note) {
+      currentOctaveRoot = note;
+      renderFretboard();
+    }
+
+    /**************************************************************
+     * 3. FRETBOARD NECK QUIZ ENGINE
+     **************************************************************/
+    function toggleNeckQuiz() {
+      quizActive = !quizActive;
+      const btn = document.getElementById('quiz-toggle-btn');
+      const banner = document.getElementById('quiz-banner');
+
+      if (quizActive) {
+        btn.classList.add('active');
+        btn.textContent = '⏹ Stop Neck Quiz';
+        banner.style.display = 'block';
+        currentOctaveRoot = '';
+        document.getElementById('octave-root-select').value = '';
+        buildQuizAnswerButtons();
+        nextQuizQuestion();
+      } else {
+        btn.classList.remove('active');
+        btn.textContent = '🎯 Start Neck Quiz';
+        banner.style.display = 'none';
+        quizTarget = null;
+        renderFretboard();
+      }
+    }
+
+    function buildQuizAnswerButtons() {
+      const wrap = document.getElementById('quiz-buttons');
+      wrap.innerHTML = CHROMATIC.map(n =>
+        `<button class="ans-btn" onclick="submitQuizAnswer('${n}')">${n}</button>`
+      ).join('');
+    }
+
+    function nextQuizQuestion() {
+      const randString = STRINGS[Math.floor(Math.random() * STRINGS.length)];
+      const randFret = Math.floor(Math.random() * 12) + 1;
+      const answer = getNoteName(randString.openNote, randFret);
+      quizTarget = {
+        string: randString.num,
+        fret: randFret,
+        answer: answer,
+        midi: randString.openMidi + randFret
+      };
+      document.getElementById('quiz-prompt-text').textContent =
+        `What note is on String ${randString.num} (${randString.name}), Fret ${randFret}?`;
+      playNoteAudio(quizTarget.midi);
+      renderFretboard();
+    }
+
+    function submitQuizAnswer(selectedNote) {
+      if (!quizTarget) return;
+      quizTotal++;
+      const promptEl = document.getElementById('quiz-prompt-text');
+      if (selectedNote === quizTarget.answer) {
+        quizCorrect++;
+        promptEl.innerHTML = `<span style="color:var(--accent-green);">✔ Correct! Moving to next note...</span>`;
+        setTimeout(nextQuizQuestion, 700);
+      } else {
+        promptEl.innerHTML = `<span style="color:var(--accent-pink);">✖ Not quite (${selectedNote}). Try again or listen closely!</span>`;
+      }
+      document.getElementById('quiz-score').textContent = `Score: ${quizCorrect} / ${quizTotal}`;
+    }
+
+    /**************************************************************
+     * 4. COURSE CURRICULUM MODULES (LEARN YOUR FRETBOARD STRUCTURE)
+     **************************************************************/
+    const COURSE_MODULES = [
+      {
+        id: 'mod-1',
+        number: 'Part 1 • Module 1',
+        title: 'Guitar Basics & The Musical Alphabet',
+        tag: 'Foundation',
+        recommendedOverlay: 'halfsteps',
+        summary: 'Before memorizing positions, you must master how the 6 strings are numbered, how the 7 natural notes cycle, and why B–C and E–F are the keys to the entire fretboard.',
+        concepts: [
+          {
+            title: 'String Numbering & Open Tuning',
+            body: `Strings are numbered <strong>1 (thinnest, high E)</strong> to <strong>6 (thickest, low E)</strong>.<ul>
+              <li><strong>6 → 1 (Low to High):</strong> <span class="mnemonic-highlight">E</span>ddie <span class="mnemonic-highlight">A</span>te <span class="mnemonic-highlight">D</span>ynamite, <span class="mnemonic-highlight">G</span>ood <span class="mnemonic-highlight">B</span>ye <span class="mnemonic-highlight">E</span>ddie</li>
+              <li><strong>1 → 6 (High to Low):</strong> <span class="mnemonic-highlight">E</span>aster <span class="mnemonic-highlight">B</span>unnies <span class="mnemonic-highlight">G</span>et <span class="mnemonic-highlight">D</span>izzy <span class="mnemonic-highlight">A</span>t <span class="mnemonic-highlight">E</span>aster</li>
+            </ul>`
+          },
+          {
+            title: 'The 7 Natural Notes & Half-Step Rule',
+            body: `The musical alphabet only uses 7 letters: <strong>A – B – C – D – E – F – G</strong>.<br><br>
+            Every natural note is a <strong>whole step (2 frets)</strong> apart, EXCEPT for two critical pairs that are a <strong>half step (1 fret)</strong> apart:
+            <ul>
+              <li><span class="mnemonic-highlight">B to C</span> (1 fret apart — no sharp/flat between them)</li>
+              <li><span class="mnemonic-highlight">E to F</span> (1 fret apart — no sharp/flat between them)</li>
+            </ul>
+            <em>Memory Phrase:</em> <strong>"Big Cats Eat Fast"</strong> (B–C and E–F).`
+          }
+        ],
+        tasks: [
+          'Recite open strings 6 to 1 (E-A-D-G-B-E) and 1 to 6 (E-B-G-D-A-E) from memory.',
+          'Click "B–C & E–F Half-Steps" on the fretboard above and locate every adjacent pink pair on all 6 strings.',
+          'Play only the natural notes up and down the Low E string while saying each note name out loud.'
+        ]
+      },
+      {
+        id: 'mod-2',
+        number: 'Part 2 • Module 2',
+        title: 'Horizontal Reference Points',
+        tag: 'Linear Navigation',
+        recommendedOverlay: 'natural',
+        summary: 'Divide each string in half using the 12th fret symmetry point, and anchor the outer edges of the fretboard (Strings 6, 1, and 5) to orient chords and scales.',
+        concepts: [
+          {
+            title: 'The 12th Fret Mirror',
+            body: `Fret 12 is the exact octave division of the guitar neck. The notes at <strong>Fret 12 (E-A-D-G-B-E)</strong> are identical to the open strings (Fret 0), and the pattern repeats from Fret 13 upward.`
+          },
+          {
+            title: 'Two Strings for the Price of One',
+            body: `Because both String 6 and String 1 are tuned to <strong>E</strong>, learning the notes along the Low E string automatically gives you <strong>33% of the entire guitar neck</strong>!<br><br>
+            <strong>Low E Natural Frets:</strong> Open(E) • Fret 1(F) • Fret 3(G) • Fret 5(A) • Fret 7(B) • Fret 8(C) • Fret 10(D) • Fret 12(E).`
+          },
+          {
+            title: 'String 5 (A String) Linear Map',
+            body: `Together with String 6, the A string controls root-position bar chords and shoegaze triad voicings:<br><br>
+            <strong>A String Natural Frets:</strong> Open(A) • Fret 2(B) • Fret 3(C) • Fret 5(D) • Fret 7(E) • Fret 8(F) • Fret 10(G) • Fret 12(A).`
+          }
+        ],
+        tasks: [
+          'Play and say the natural notes on String 6 (Low E) ascending and descending without looking at the chart.',
+          'Mirror the exact same fret positions simultaneously on String 1 (High E).',
+          'Play and recite all natural notes along String 5 (A string) from Open to Fret 12.'
+        ]
+      },
+      {
+        id: 'mod-3',
+        number: 'Part 2 • Module 3',
+        title: 'Vertical Reference Points (3, 5, 7, 10)',
+        tag: 'Cross-Neck Landmarks',
+        recommendedOverlay: 'anchors',
+        summary: 'Stop counting up from the open nut! Memorize 4 vertical fret columns (Frets 3, 5, 7, and 10) where almost every note across all 6 strings is a natural note.',
+        concepts: [
+          {
+            title: 'Fret 3 & Fret 5 Anchor Columns',
+            body: `<ul>
+              <li><strong>Fret 3 (6→1): G – C – F – A# – D – G</strong><br>
+              <em>Note:</em> Every string is natural except String 3 (A#/Bb).</li>
+              <li><strong>Fret 5 (6→1): A – D – G – C – E – A</strong><br>
+              <em>100% Natural Notes!</em> Notice how Fret 5 on strings 6-5-4-3 matches the open strings shifted over (A-D-G-C).</li>
+            </ul>`
+          },
+          {
+            title: 'Fret 7 & Fret 10 Anchor Columns',
+            body: `<ul>
+              <li><strong>Fret 7 (6→1): B – E – A – D – F# – B</strong><br>
+              <em>Mnemonic (6→3):</em> <strong>B-E-A-D</strong> + F# on B-string + B on high E.</li>
+              <li><strong>Fret 10 (6→1): D – G – C – F – A – D</strong><br>
+              <em>100% Natural Notes!</em> Five frets above the Fret 5 column.</li>
+            </ul>`
+          }
+        ],
+        tasks: [
+          'Recite Fret 5 vertically from String 6 to String 1 (A – D – G – C – E – A) until automatic.',
+          'Recite Fret 10 vertically from String 6 to String 1 (D – G – C – F – A – D).',
+          'Use the "BEAD" shortcut at Fret 7 (B – E – A – D – F# – B) and verify on the interactive fretboard.'
+        ]
+      },
+      {
+        id: 'mod-4',
+        number: 'Part 2 • Module 4',
+        title: 'Movable Octave Shapes & The B-String Shift',
+        tag: 'Geometric Mapping',
+        recommendedOverlay: 'natural',
+        summary: 'Link the horizontal strings and vertical anchor columns together using 4 visual octave triangles. Once you know a note on String 6 or 5, you immediately know it on the higher strings.',
+        concepts: [
+          {
+            title: 'Why Shapes Shift on the B String',
+            body: `All adjacent strings are tuned a <strong>Perfect 4th</strong> apart (E→A, A→D, D→G, B→E), EXCEPT <strong>G to B</strong>, which is a <strong>Major 3rd</strong> (1 fret narrower).<br><br>
+            <strong>Rule:</strong> Whenever a chord or octave shape crosses onto String 2 (B) or String 1 (E), widen the horizontal span by <strong>+1 fret</strong>.`
+          },
+          {
+            title: 'Forward Octave Shapes (+2 / +3 Frets)',
+            body: `<ul>
+              <li><strong>Strings 6→4 or 5→3:</strong> Go down <strong>2 strings</strong>, up <strong>2 frets</strong> (e.g., 6th string Fret 3 [G] → 4th string Fret 5 [G]).</li>
+              <li><strong>Strings 4→2 or 3→1 (Crosses B String):</strong> Go down <strong>2 strings</strong>, up <strong>3 frets</strong> (e.g., 4th string Fret 5 [G] → 2nd string Fret 8 [G]).</li>
+            </ul>`
+          },
+          {
+            title: 'Reverse / 3-String Skip Octave Shapes',
+            body: `<ul>
+              <li><strong>Strings 6→3 or 5→2:</strong> Go down <strong>3 strings</strong>, back <strong>3 frets</strong> (or 2 frets when crossing B).</li>
+              <li><strong>Outer E-String Box (6→1):</strong> Same fret on String 6 and String 1 is always a 2-octave unison!</li>
+            </ul>`
+          }
+        ],
+        tasks: [
+          'Use the "Octave Root" dropdown above to highlight "G Octaves" and trace the 2-fret vs. 3-fret shapes across all 6 strings.',
+          'Pick any note on String 6 and play its octave on String 4 (+2 frets) and String 1 (same fret).',
+          'Pick any note on String 5 and connect it to String 3 (+2 frets) and String 2 (-2 frets).'
+        ]
+      },
+      {
+        id: 'mod-5',
+        number: 'Part 3 • Module 5',
+        title: 'The 7 Memorization Exercises & Daily Plan',
+        tag: 'Active Recall',
+        recommendedOverlay: 'blank',
+        summary: 'Knowledge becomes instinct through structured active recall. Use this module’s 15–20 minute daily routine and the built-in Neck Quiz to lock in total fluency.',
+        concepts: [
+          {
+            title: 'The 7-Step Exercise Progression',
+            body: `<ol style="padding-left:18px; color:var(--text-muted); font-size:0.88rem;">
+              <li><strong>Single-String Natural Walk:</strong> Ascend with sharps, descend with flats.</li>
+              <li><strong>Vertical Column Sprints:</strong> Call out notes across Frets 3, 5, 7, and 10.</li>
+              <li><strong>One-Note 6-String Hunt:</strong> Pick 1 note (e.g., F) and play it on every string from 6 to 1 under 60 BPM.</li>
+              <li><strong>Octave Web Chaining:</strong> Connect every octave of a chosen root across the neck.</li>
+              <li><strong>Adjacent Nearest-Neighbor Drill:</strong> Name the 4 notes surrounding any random fret.</li>
+              <li><strong>Off-Guitar Mental Visualization:</strong> Visualize fret coordinates away from the guitar.</li>
+              <li><strong>Progression Root Jump:</strong> Play your Shoegaze chord roots in 3 different neck zones.</li>
+            </ol>`
+          },
+          {
+            title: '15–20 Minute Daily Practice Plan',
+            body: `<ul>
+              <li><strong>Mins 0–5 (Linear):</strong> Natural notes + half-steps on 2 chosen strings.</li>
+              <li><strong>Mins 5–10 (Vertical):</strong> Drill Frets 3, 5, 7, and 10 columns vertically.</li>
+              <li><strong>Mins 10–15 (6-String Target):</strong> Locate 2 random notes across all 6 strings using octave shapes.</li>
+              <li><strong>Mins 15–20 (Timed Quiz):</strong> Complete 15 questions in the Neck Quiz above with "Blank Neck" enabled.</li>
+            </ul>`
+          }
+        ],
+        tasks: [
+          'Complete the "One-Note 6-String Hunt" for all 7 natural notes (C, D, E, F, G, A, B) from String 6 to String 1.',
+          'Switch the Fretboard Overlay above to "Blank Neck (Test)" and score at least 10/12 on the Neck Quiz.',
+          'Complete one full 15–20 minute daily practice session.'
+        ]
+      },
+      {
+        id: 'mod-6',
+        number: 'Bonus • Module 6',
+        title: 'Online Bonus Companion & Audio Drone',
+        tag: 'GuitarIQ Bonus',
+        recommendedOverlay: 'all',
+        summary: 'Access the companion tools from the Learn Your Fretboard Online Bonus package—including an interactive Reference Drone for ear/fretboard training and direct access to your GuitarIQ bonus portal.',
+        concepts: [
+          {
+            title: 'Interactive Reference Drone (Bonus Audio Tool)',
+            body: `Practicing fretboard locations over a sustained reference drone trains your ear and eyes simultaneously. Choose a key below to start an ambient pad drone while you find every matching root and triad across the neck:<br><br>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+              <button class="btn btn-cyan" onclick="toggleDrone(40, 'E')">🔊 Drone: E</button>
+              <button class="btn btn-cyan" onclick="toggleDrone(45, 'A')">🔊 Drone: A</button>
+              <button class="btn btn-cyan" onclick="toggleDrone(50, 'D')">🔊 Drone: D</button>
+              <button class="btn btn-cyan" onclick="toggleDrone(43, 'G')">🔊 Drone: G</button>
+              <button class="btn btn-cyan" onclick="toggleDrone(48, 'C')">🔊 Drone: C</button>
+              <button class="btn btn-pink" onclick="stopDrone()">⏹ Stop Drone</button>
+            </div>
+            <div id="drone-status" style="margin-top:8px; font-size:0.8rem; color:var(--accent-cyan);">Drone Status: Off</div>`
+          },
+          {
+            title: 'GuitarIQ Official Online Bonus Portal',
+            body: `To download the printable PDF blank neck worksheets, high-res reference posters, and MP3 backing tracks from Luke Zecchin's companion portal:<br><br>
+            <strong>Login Account Reference:</strong><br>
+            • Name: <code>Steve Farrar</code><br>
+            • Email: <code>consciencedub@yahoo.com</code>`
+          }
+        ],
+        tasks: [
+          'Turn on the "Drone: A" pad and play every A natural note and octave shape across all 6 strings.',
+          'Test your blank neck recall using the "Blank Neck (Test)" toggle above.',
+          'Bookmark or download the printable neck diagrams from the GuitarIQ Online Bonus page.'
+        ],
+        isBonus: true
+      }
+    ];
+
+    /**************************************************************
+     * 5. PERSISTENT PROGRESS & STATE MANAGEMENT (localStorage)
+     **************************************************************/
+    const STORAGE_KEY = 'lyf_workbench_progress_v1';
+    let activeModuleIndex = 0;
+    let progressState = {
+      completedModules: {},
+      checkedTasks: {}
+    };
+
+    function loadProgress() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) progressState = JSON.parse(saved);
+      } catch (e) {
+        console.warn('Could not load saved progress', e);
+      }
+    }
+
+    function saveProgress() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(progressState));
+      } catch (e) {
+        console.warn('Could not save progress', e);
+      }
+      updateMasterProgressBar();
+      renderSidebar();
+    }
+
+    function updateMasterProgressBar() {
+      const total = COURSE_MODULES.length;
+      const done = COURSE_MODULES.filter(m => progressState.completedModules[m.id]).length;
+      const pct = Math.round((done / total) * 100);
+      document.getElementById('progress-text').textContent = `${done} / ${total} Modules (${pct}%)`;
+      document.getElementById('progress-fill').style.width = `${pct}%`;
+    }
+
+    function renderSidebar() {
+      const list = document.getElementById('module-list');
+      list.innerHTML = COURSE_MODULES.map((mod, idx) => {
+        const isDone = !!progressState.completedModules[mod.id];
+        const isActive = idx === activeModuleIndex;
+        return `
+          <button class="module-tab ${isActive ? 'active' : ''} ${isDone ? 'completed' : ''}" onclick="selectModule(${idx})">
+            <div class="module-tab-left">
+              <span class="module-num">${mod.number}</span>
+              <span class="module-name">${mod.title}</span>
+            </div>
+            <div class="status-pill">${isDone ? '✓' : ''}</div>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function selectModule(idx) {
+      activeModuleIndex = idx;
+      const mod = COURSE_MODULES[idx];
+      if (mod.recommendedOverlay && !quizActive) {
+        setOverlay(mod.recommendedOverlay);
+      }
+      renderSidebar();
+      renderActiveModule();
+    }
+
+    function toggleTaskCheck(modId, taskIdx) {
+      const key = `${modId}_task_${taskIdx}`;
+      progressState.checkedTasks[key] = !progressState.checkedTasks[key];
+
+      // Auto-complete module if all tasks in the module are checked
+      const mod = COURSE_MODULES.find(m => m.id === modId);
+      if (mod) {
+        const allChecked = mod.tasks.every((_, i) => progressState.checkedTasks[`${modId}_task_${i}`]);
+        if (allChecked) {
+          progressState.completedModules[modId] = true;
         }
+      }
 
-        function showTemporarily(label) {
-            label.classList.remove('opacity-0', 'scale-50');
-            label.classList.add('opacity-100', 'scale-100');
-            setTimeout(() => {
-                // Check state again in case user toggled switches during timeout
-                if (!isShowNotesActive || label.dataset.natural !== "true") {
-                    label.classList.add('opacity-0', 'scale-50');
-                    label.classList.remove('opacity-100', 'scale-100');
-                }
-            }, 1000);
-        }
+      saveProgress();
+      renderActiveModule();
+    }
 
-        function updateNoteVisibility() {
-            const allLabels = document.querySelectorAll('.note-label');
-            allLabels.forEach(label => {
-                if (isShowNotesActive && label.dataset.natural === "true") {
-                    label.classList.remove('opacity-0', 'scale-50');
-                    label.classList.add('opacity-100', 'scale-100');
-                } else {
-                    label.classList.add('opacity-0', 'scale-50');
-                    label.classList.remove('opacity-100', 'scale-100');
-                }
-            });
-        }
+    function toggleModuleComplete(modId) {
+      progressState.completedModules[modId] = !progressState.completedModules[modId];
+      saveProgress();
+      renderActiveModule();
+    }
 
-        // Quiz Logic
-        function generateQuizQuestion() {
-            // Pick random string (0-5)
-            quizTargetStringIndex = Math.floor(Math.random() * 6);
-            
-            // Find all natural notes on this string up to fret 12
-            const availableNotes = [];
-            const openNote = standardTuning[quizTargetStringIndex];
-            
-            for (let fret = 0; fret <= fretsCount; fret++) {
-                const noteIndex = (chromaticScale.indexOf(openNote) + fret) % 12;
-                const note = chromaticScale[noteIndex];
-                if (!note.includes('#')) {
-                    availableNotes.push(note);
-                }
-            }
-            
-            // Pick random natural note
-            // Ensure we remove duplicates (e.g. open string and 12th fret are the same note)
-            const uniqueNotes = [...new Set(availableNotes)];
-            quizTargetNote = uniqueNotes[Math.floor(Math.random() * uniqueNotes.length)];
-            
-            quizPrompt.innerHTML = `Find <span class="text-blue-600 font-extrabold text-xl">${quizTargetNote}</span> on the <span class="font-extrabold">${stringNames[quizTargetStringIndex]}</span> string`;
-            quizFeedback.innerText = "Waiting for your answer...";
-            quizFeedback.className = "text-sm font-semibold mt-1 text-gray-500";
-        }
+    function renderActiveModule() {
+      const mod = COURSE_MODULES[activeModuleIndex];
+      const isComplete = !!progressState.completedModules[mod.id];
+      const viewer = document.getElementById('module-viewer');
 
-        function checkQuizAnswer(clickedStringIdx, clickedNote, labelDiv) {
-            if (clickedStringIdx === quizTargetStringIndex && clickedNote === quizTargetNote) {
-                // Correct!
-                quizFeedback.innerText = "Correct! Great job.";
-                quizFeedback.className = "text-sm font-bold mt-1 text-green-600";
-                
-                labelDiv.classList.remove('opacity-0', 'scale-50');
-                labelDiv.classList.add('opacity-100', 'scale-100', 'bg-green-500');
-                
-                setTimeout(() => {
-                    labelDiv.classList.remove('bg-green-500');
-                    if (!isShowNotesActive) {
-                        labelDiv.classList.add('opacity-0', 'scale-50');
-                        labelDiv.classList.remove('opacity-100', 'scale-100');
-                    }
-                    generateQuizQuestion();
-                }, 1000);
+      const conceptsHtml = mod.concepts.map(c => `
+        <div class="concept-box">
+          <h3>${c.title}</h3>
+          <div>${c.body}</div>
+        </div>
+      `).join('');
 
-            } else {
-                // Incorrect
-                quizFeedback.innerText = `Oops! That was ${clickedNote}. Try again.`;
-                quizFeedback.className = "text-sm font-bold mt-1 text-red-500";
-                
-                labelDiv.classList.remove('opacity-0', 'scale-50');
-                labelDiv.classList.add('opacity-100', 'scale-100', 'bg-red-500');
-                
-                setTimeout(() => {
-                    labelDiv.classList.remove('bg-red-500');
-                    if (!isShowNotesActive || labelDiv.dataset.natural !== "true") {
-                        labelDiv.classList.add('opacity-0', 'scale-50');
-                        labelDiv.classList.remove('opacity-100', 'scale-100');
-                    }
-                }, 800);
-            }
-        }
+      const tasksHtml = mod.tasks.map((t, i) => {
+        const key = `${mod.id}_task_${i}`;
+        const checked = !!progressState.checkedTasks[key];
+        return `
+          <label class="check-item ${checked ? 'checked' : ''}">
+            <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleTaskCheck('${mod.id}', ${i})">
+            <span>${t}</span>
+          </label>
+        `;
+      }).join('');
 
-        // Event Listeners
-        toggleNotesBtn.addEventListener('change', (e) => {
-            isShowNotesActive = e.target.checked;
-            updateNoteVisibility();
-        });
+      const bonusLinkHtml = mod.isBonus ? `
+        <div class="external-bonus-card">
+          <div>
+            <strong style="color:#fff;">🔗 Official GuitarIQ LYF Online Bonus Portal</strong>
+            <p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">
+              Sign in as <strong>Steve Farrar</strong> (<code>consciencedub@yahoo.com</code>) to access the downloadable PDFs & backing tracks.
+            </p>
+          </div>
+          <a href="https://www.guitariq.com/lyf-online-bonus.html" target="_blank" rel="noopener" class="btn btn-pink" style="text-decoration:none;">
+            Launch GuitarIQ Bonus Page ↗
+          </a>
+        </div>
+      ` : '';
 
-        toggleQuizBtn.addEventListener('change', (e) => {
-            isQuizActive = e.target.checked;
-            if (isQuizActive) {
-                quizPanel.classList.remove('hidden');
-                // Force hide notes if quiz is active to prevent cheating
-                isShowNotesActive = false;
-                toggleNotesBtn.checked = false;
-                toggleNotesBtn.disabled = true;
-                updateNoteVisibility();
-                generateQuizQuestion();
-            } else {
-                quizPanel.classList.add('hidden');
-                toggleNotesBtn.disabled = false;
-            }
-        });
+      viewer.innerHTML = `
+        <div class="module-header">
+          <div>
+            <span class="module-tag">${mod.number} • ${mod.tag}</span>
+            <h2>${mod.title}</h2>
+          </div>
+          <button class="complete-btn ${isComplete ? 'is-complete' : ''}" onclick="toggleModuleComplete('${mod.id}')">
+            ${isComplete ? '✓ Module Completed' : '☐ Mark Module Complete'}
+          </button>
+        </div>
 
-        // Run
-        window.onload = () => {
-            initFretboard();
-        };
+        <p style="color:var(--text-muted); margin-bottom:20px; font-size:0.96rem;">${mod.summary}</p>
 
-    </script>
+        <div class="concept-grid">
+          ${conceptsHtml}
+        </div>
+
+        ${bonusLinkHtml}
+
+        <div class="checklist-box">
+          <h4>📋 Module Mastery Checklist (Check off as you complete):</h4>
+          ${tasksHtml}
+        </div>
+      `;
+    }
+
+    /**************************************************************
+     * 6. AMBIENT DRONE GENERATOR (MODULE 6 BONUS TOOL)
+     **************************************************************/
+    function toggleDrone(midiNote, label) {
+      initAudio();
+      stopDrone();
+      const now = audioCtx.currentTime;
+      const freq = midiToFreq(midiNote);
+
+      droneOsc = audioCtx.createOscillator();
+      const subOsc = audioCtx.createOscillator();
+      droneGain = audioCtx.createGain();
+
+      droneOsc.type = 'sawtooth';
+      subOsc.type = 'sine';
+      droneOsc.frequency.setValueAtTime(freq, now);
+      subOsc.frequency.setValueAtTime(freq / 2, now);
+
+      // Warm low-pass filter for shoegaze/ambient pad texture
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(420, now);
+
+      droneGain.gain.setValueAtTime(0.01, now);
+      droneGain.gain.linearRampToValueAtTime(0.15, now + 0.5);
+
+      droneOsc.connect(filter);
+      subOsc.connect(filter);
+      filter.connect(droneGain);
+      droneGain.connect(audioCtx.destination);
+
+      droneOsc.start();
+      subOsc.start();
+      droneOsc._sub = subOsc;
+
+      highlightOctaveRoot(label);
+      document.getElementById('octave-root-select').value = label;
+      const statusEl = document.getElementById('drone-status');
+      if (statusEl) statusEl.textContent = `Drone Status: Playing ${label} Ambient Reference Pad (All ${label} notes highlighted above)`;
+    }
+
+    function stopDrone() {
+      if (droneOsc) {
+        try {
+          droneOsc.stop();
+          if (droneOsc._sub) droneOsc._sub.stop();
+          droneOsc.disconnect();
+        } catch (e) {}
+        droneOsc = null;
+      }
+      const statusEl = document.getElementById('drone-status');
+      if (statusEl) statusEl.textContent = 'Drone Status: Off';
+    }
+
+    // Initialize Application
+    window.addEventListener('DOMContentLoaded', () => {
+      loadProgress();
+      renderFretboard();
+      renderSidebar();
+      renderActiveModule();
+      updateMasterProgressBar();
+    });
+  </script>
 </body>
 </html>
