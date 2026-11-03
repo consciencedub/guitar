@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Shoegaze Guitar Explorer</title>
+  <title>Shoegaze Guitar Playbook - Guided Academy</title>
   <style>
     :root {
       --bg: #0b0c14;
@@ -11,7 +11,9 @@
       --card-border: #232840;
       --accent: #8b5cf6;
       --accent-glow: rgba(139, 92, 246, 0.4);
-      --accent-secondary: #06b6d4;
+      --accent-cyan: #38bdf8;
+      --accent-pink: #ec4899;
+      --accent-green: #10b981;
       --text-main: #f1f5f9;
       --text-muted: #94a3b8;
       --fretboard-wood: #1e1b18;
@@ -25,42 +27,190 @@
     
     html, body {
       min-height: 100%;
-      background-color: #0b0c14;
+      background-color: var(--bg);
     }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: radial-gradient(circle at 50% 0%, #1e1b4b 0%, var(--bg) 70%);
+      background: radial-gradient(circle at 50% 0%, #1e1b4b 0%, var(--bg) 75%);
       color: var(--text-main);
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 24px 16px;
+      padding: 20px 16px;
     }
 
     header {
-      text-align: center;
-      margin-bottom: 24px;
+      width: 100%;
+      max-width: 1240px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      gap: 16px;
     }
-    header h1 {
-      font-size: 2rem;
+
+    .brand h1 {
+      font-size: 1.8rem;
       letter-spacing: -0.5px;
       background: linear-gradient(135deg, #a78bfa, #38bdf8, #f472b6);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      margin-bottom: 6px;
-    }
-    header p {
-      color: var(--text-muted);
-      font-size: 0.95rem;
     }
 
-    .container {
+    .brand p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    /* Overall Progress Bar Card */
+    .progress-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 280px;
+    }
+    .progress-bar-wrap {
+      flex: 1;
+      height: 10px;
+      background: #1e2238;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-pink));
+      transition: width 0.4s ease;
+    }
+    .progress-text {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-main);
+      min-width: 75px;
+      text-align: right;
+    }
+
+    /* App Layout */
+    .app-layout {
       width: 100%;
-      max-width: 980px;
+      max-width: 1240px;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    @media (max-width: 960px) {
+      .app-layout { grid-template-columns: 1fr; }
+    }
+
+    /* Sidebar Curriculum */
+    .sidebar {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+
+    .sidebar h2 {
+      font-size: 1.05rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+
+    .phase-group {
+      margin-bottom: 18px;
+    }
+
+    .phase-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .module-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 12px;
+      border-radius: 8px;
+      margin-bottom: 6px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      background: #111424;
+      transition: all 0.2s ease;
+    }
+
+    .module-item:hover {
+      border-color: var(--accent);
+      background: #171b30;
+    }
+
+    .module-item.active {
+      border-color: var(--accent-pink);
+      background: rgba(236, 72, 153, 0.12);
+    }
+
+    .mod-info {
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 2px;
+    }
+
+    .mod-title {
+      font-size: 0.86rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .mod-subtitle {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .chk-indicator {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      border: 2px solid #475569;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: bold;
+      color: white;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .module-item.completed .chk-indicator {
+      background: var(--accent-green);
+      border-color: var(--accent-green);
+    }
+    .module-item.completed .chk-indicator::after {
+      content: "✓";
+    }
+
+    /* Main Workspace */
+    .workspace {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
     }
 
     .card {
@@ -69,6 +219,60 @@
       border-radius: 12px;
       padding: 20px;
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Guide & Module Header Card */
+    .module-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .module-banner h3 {
+      font-size: 1.4rem;
+      color: var(--accent-cyan);
+      margin-bottom: 4px;
+    }
+    .module-guide-text {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      line-height: 1.45;
+      max-width: 650px;
+    }
+
+    .mark-complete-btn {
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: #1e2238;
+      color: var(--text-main);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .mark-complete-btn.is-complete {
+      background: rgba(16, 185, 129, 0.18);
+      border-color: var(--accent-green);
+      color: var(--accent-green);
+    }
+
+    /* Mastery Checklist Box */
+    .criteria-box {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      background: #0f121e;
+      border-left: 3px solid var(--accent);
+      font-size: 0.85rem;
+      color: #cbd5e1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
     }
 
     /* Controls Bar */
@@ -85,13 +289,13 @@
       gap: 10px;
     }
     label {
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       color: var(--text-muted);
       text-transform: uppercase;
       font-weight: 600;
       letter-spacing: 0.5px;
     }
-    select, input[type="range"], button {
+    input[type="range"], button {
       background: #1e2238;
       border: 1px solid var(--card-border);
       color: var(--text-main);
@@ -102,18 +306,13 @@
       outline: none;
       transition: all 0.2s ease;
     }
-    select:hover, button:hover {
-      border-color: var(--accent);
-    }
     button.primary {
       background: var(--accent);
       border: none;
       font-weight: 600;
       box-shadow: 0 0 12px var(--accent-glow);
     }
-    button.primary:hover {
-      background: #7c3aed;
-    }
+    button.primary:hover { background: #7c3aed; }
     button.active {
       background: #059669;
       box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
@@ -126,8 +325,8 @@
     }
     .fretboard {
       position: relative;
-      width: 900px;
-      height: 190px;
+      width: 880px;
+      height: 180px;
       background: var(--fretboard-wood);
       border-radius: 6px;
       border-top: 3px solid #332d27;
@@ -137,7 +336,6 @@
       margin: 0 auto;
     }
 
-    /* Nut */
     .nut {
       position: absolute;
       left: 48px;
@@ -148,8 +346,6 @@
       box-shadow: 2px 0 6px rgba(0,0,0,0.6);
       z-index: 3;
     }
-
-    /* Frets */
     .fret-wire {
       position: absolute;
       top: 0;
@@ -165,8 +361,6 @@
       font-size: 0.75rem;
       color: var(--text-muted);
     }
-
-    /* Fret Inlays */
     .fret-marker {
       position: absolute;
       width: 12px;
@@ -177,8 +371,6 @@
       transform: translate(-50%, -50%);
       pointer-events: none;
     }
-
-    /* Strings */
     .string-line {
       position: absolute;
       left: 0;
@@ -187,8 +379,6 @@
       z-index: 4;
       pointer-events: none;
     }
-
-    /* String Header Status */
     .string-status {
       position: absolute;
       left: 12px;
@@ -206,7 +396,6 @@
     .string-status.open { color: var(--open-string); }
     .string-status.mute { color: var(--muted-string); }
 
-    /* Note Marker on Fretboard */
     .fret-note {
       position: absolute;
       width: 24px;
@@ -230,18 +419,17 @@
       box-shadow: 0 0 16px #38bdf8;
     }
 
-    /* Chord Details Bar */
     .chord-info {
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
       border-bottom: 1px solid var(--card-border);
-      padding-bottom: 14px;
-      margin-bottom: 14px;
+      padding-bottom: 12px;
+      margin-bottom: 12px;
     }
     .chord-title {
-      font-size: 1.5rem;
+      font-size: 1.35rem;
       font-weight: 700;
       color: #38bdf8;
     }
@@ -249,28 +437,22 @@
       font-family: monospace;
       letter-spacing: 2px;
       background: #0f121e;
-      padding: 6px 12px;
+      padding: 5px 10px;
       border-radius: 4px;
       border: 1px solid var(--card-border);
     }
-    .chord-desc {
-      font-size: 0.9rem;
-      color: var(--text-muted);
-      line-height: 1.4;
-    }
 
-    /* Quick Chord Selector Pills */
     .chord-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
       gap: 10px;
       margin-top: 14px;
     }
     .chord-btn {
-      padding: 10px;
+      padding: 9px;
       text-align: center;
       font-weight: 600;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
     }
     .chord-btn.active {
       border-color: #38bdf8;
@@ -278,7 +460,6 @@
       color: #38bdf8;
     }
 
-    /* Progressions Bar */
     .progression-steps {
       display: flex;
       gap: 10px;
@@ -296,11 +477,10 @@
       text-align: center;
       font-size: 0.85rem;
       user-select: none;
+      cursor: pointer;
       transition: all 0.2s;
     }
-    .prog-step:hover {
-      border-color: var(--accent);
-    }
+    .prog-step:hover { border-color: var(--accent); }
     .prog-step.active {
       border-color: #ec4899;
       background: rgba(236, 72, 153, 0.15);
@@ -312,61 +492,89 @@
 <body>
 
   <header>
-    <h1>Shoegaze Guitar Lab</h1>
-    <p>Interactive Fretboard & Playbook Progression Player</p>
+    <div class="brand">
+      <h1>Shoegaze Guitar Academy</h1>
+      <p>Interactive curriculum, fretboard explorer, and progress tracker</p>
+    </div>
+    <div class="progress-card">
+      <div class="progress-bar-wrap">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+      <div class="progress-text" id="progress-text">0% Done</div>
+    </div>
   </header>
 
-  <div class="container">
-    <!-- Controls -->
-    <div class="card controls">
-      <div class="control-group">
-        <label for="book-section">Phase / Module</label>
-        <select id="book-section">
-          <option value="phase1_slide">Phase I: Moveable C-Shape (Step 1-2)</option>
-          <option value="phase1_twofinger">Phase I: 2-Finger MBV Dyads (Step 5)</option>
-          <option value="phase2_chordscale">Phase II: Key of E Chord-Scale (Step 3)</option>
-          <option value="phase3_modal">Phase III: Borrowed Modal Progression</option>
-        </select>
-      </div>
+  <div class="app-layout">
+    <!-- Sidebar Curriculum -->
+    <aside class="sidebar">
+      <h2>Modules & Phases</h2>
+      <div id="curriculum-list"></div>
+    </aside>
 
-      <div class="control-group">
-        <label for="tempo-range">Tempo: <span id="bpm-val">100</span> BPM</label>
-        <input type="range" id="tempo-range" min="60" max="150" value="100" />
-      </div>
-
-      <div class="control-group">
-        <button id="strum-btn" class="primary">Strum Chord (Space)</button>
-        <button id="play-prog-btn">Play Progression</button>
-      </div>
-    </div>
-
-    <!-- Active Chord & Fretboard Visualizer -->
-    <div class="card">
-      <div class="chord-info">
-        <div>
-          <div class="chord-title" id="display-name">C Major</div>
-          <div class="chord-desc" id="display-desc">Standard open shape foundation. Move up neck while keeping open G ringing.</div>
+    <!-- Main Workspace -->
+    <main class="workspace">
+      <!-- Active Module Guide Card -->
+      <div class="card">
+        <div class="module-banner">
+          <div>
+            <h3 id="mod-display-title">Phase I: Moveable C-Shape</h3>
+            <p class="module-guide-text" id="mod-display-guide">
+              Slide fundamental open shapes up the fretboard while keeping open strings droning.
+            </p>
+          </div>
+          <button class="mark-complete-btn" id="mark-complete-btn">
+            <span id="chk-btn-icon">○</span> <span id="chk-btn-label">Mark Complete</span>
+          </button>
         </div>
-        <div class="chord-tab" id="display-tab">x 3 2 0 1 0</div>
-      </div>
 
-      <div class="fretboard-wrap">
-        <div class="fretboard" id="fretboard">
-          <div class="nut"></div>
+        <div class="criteria-box" id="mod-criteria">
+          <strong>Mastery Checklist:</strong>
+          <span id="mod-criteria-text">Transition without stopping; keep open G ringing cleanly.</span>
         </div>
       </div>
-    </div>
 
-    <!-- Current Module Chords -->
-    <div class="card">
-      <label>Voicings in this Phase</label>
-      <div class="chord-grid" id="chord-buttons"></div>
-      
-      <div style="margin-top: 18px;">
-        <label>Rhythm & Progression Tracker</label>
-        <div class="progression-steps" id="prog-steps"></div>
+      <!-- Controls -->
+      <div class="card controls">
+        <div class="control-group">
+          <label for="tempo-range">Tempo: <span id="bpm-val">100</span> BPM</label>
+          <input type="range" id="tempo-range" min="60" max="150" value="100" />
+        </div>
+
+        <div class="control-group">
+          <button id="strum-btn" class="primary">Strum Chord (Space)</button>
+          <button id="play-prog-btn">Play Progression</button>
+          <button id="next-mod-btn">Next Module →</button>
+        </div>
       </div>
-    </div>
+
+      <!-- Active Chord & Fretboard Visualizer -->
+      <div class="card">
+        <div class="chord-info">
+          <div>
+            <div class="chord-title" id="display-name">C Major</div>
+            <div style="font-size: 0.88rem; color: var(--text-muted);" id="display-desc">Standard open shape.</div>
+          </div>
+          <div class="chord-tab" id="display-tab">x 3 2 0 1 0</div>
+        </div>
+
+        <div class="fretboard-wrap">
+          <div class="fretboard" id="fretboard">
+            <div class="nut"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chord Voicings & Progression Steps -->
+      <div class="card">
+        <label>Voicings in this Module</label>
+        <div class="chord-grid" id="chord-buttons"></div>
+        
+        <div style="margin-top: 18px;">
+          <label>Rhythm & Progression Tracker (Click Step to Play)</label>
+          <div class="progression-steps" id="prog-steps"></div>
+        </div>
+      </div>
+    </main>
   </div>
 
   <script>
@@ -453,9 +661,14 @@
       }
     }
 
-    const PLAYBOOK_DATA = {
-      phase1_slide: {
-        title: "Phase I: Moveable C-Shape",
+    const CURRICULUM = [
+      {
+        id: "phase1_slide",
+        phase: "Phase I: Transforming the Basics",
+        step: "Step 1-2",
+        title: "Moveable C-Shape",
+        guide: "Keep your standard open C shape locked in your fingers while sliding up the neck. The open G string remains ringing throughout.",
+        criteria: "Play smoothly along with the 8th-note strum guide with zero gap between chord shifts.",
         progression: ["C", "Dadd11", "G(no5)", "Dadd11", "C"],
         chords: [
           { name: "C", frets: [-1, 3, 2, 0, 1, 0], desc: "Standard open C position. Keep open G ringing." },
@@ -465,49 +678,152 @@
           { name: "Dadd11/A", frets: [5, 5, 4, 0, 3, 0], desc: "Beefier Dadd11 with bass note fretted on low E." }
         ]
       },
-      phase1_twofinger: {
-        title: "Phase I: 2-Finger MBV Dyads",
-        progression: ["D/F#", "G", "Bm", "Amadd11", "D/F#"],
+      {
+        id: "phase1_sus2_subs",
+        phase: "Phase I: Transforming the Basics",
+        step: "Step 2",
+        title: "Gsus2 & Minor Substitutions",
+        guide: "Using Gsus2 to replace standard open G, then moving the identical shape up for minor key companion chords.",
+        criteria: "Mute the 5th and 1st strings cleanly while keeping the 3rd string open.",
+        progression: ["Gsus2", "Bbadd9", "Csus2", "Ebmaj7sus2"],
+        chords: [
+          { name: "Gsus2", frets: [3, -1, 0, 2, 3, -1], desc: "Open position Gsus2 substituting for standard open G. Mute A & high E." },
+          { name: "Bbadd9", frets: [6, -1, 0, 5, 6, -1], desc: "Slide up 3 frets to the minor companion: Bb." },
+          { name: "Csus2", frets: [8, -1, 0, 7, 8, -1], desc: "Slide shape up to C root on the 8th fret." },
+          { name: "Ebmaj7sus2", frets: [11, -1, 0, 10, 11, -1], desc: "Slide shape up to 11th fret for ethereal minor key release." }
+        ]
+      },
+      {
+        id: "phase1_twofinger_mbv",
+        phase: "Phase I: Transforming the Basics",
+        step: "Step 5",
+        title: "2-Finger MBV Dyads",
+        guide: "My Bloody Valentine-style two-finger shapes. Let the index finger lightly brush against adjacent strings to isolate only the target voices.",
+        criteria: "Maintain steady down-up strumming while transitioning cleanly across the entire neck.",
+        progression: ["D/F#", "G", "Amadd11", "Bm", "D", "Em7"],
         chords: [
           { name: "D/F#", frets: [2, -1, 0, 2, -1, -1], desc: "2 fingers only. Rub index over A string to cancel it." },
           { name: "G", frets: [3, -1, 0, 4, -1, -1], desc: "Slide shape up 1 fret. Ringing open D string." },
-          { name: "Amadd11", frets: [5, -1, 0, 5, -1, -1], desc: "5th fret indie voicing." },
+          { name: "Amadd11", frets: [5, -1, 0, 5, -1, -1], desc: "5th fret indie voicing with open D drone." },
           { name: "Bm", frets: [7, -1, 0, 7, -1, -1], desc: "7th fret minor anchor for darker moods." },
-          { name: "D", frets: [10, -1, 0, 11, -1, -1], desc: "10th fret D resolution." },
+          { name: "D", frets: [10, -1, 0, 11, -1, -1], desc: "10th fret D dyad resolution." },
           { name: "Em7", frets: [12, -1, 0, 12, -1, -1], desc: "12th fret octave dyad." }
         ]
       },
-      phase2_chordscale: {
-        title: "Phase II: Key of E Chord Scale",
-        progression: ["Emaj7", "F#m11", "Eadd9/G#", "Amaj9", "B7sus4", "Emaj7"],
+      {
+        id: "phase1_twofinger_triads",
+        phase: "Phase I: Transforming the Basics",
+        step: "Step 6",
+        title: "2-Finger Triads & Shapes",
+        guide: "Combining minimal fingerings with open G and B strings to create rich, expanded triads.",
+        criteria: "Practice in sets of 3 shapes per day to build muscle memory.",
+        progression: ["Em/G", "Bm/A", "G/D", "Bm/D", "Am9/C", "Cmaj7", "D6"],
         chords: [
-          { name: "Emaj7", frets: [0, 2, 1, 1, 0, 0], desc: "The home sun chord. Let B and High E ring out freely." },
-          { name: "F#m11", frets: [2, -1, 2, 2, 0, 0], desc: "Minor 11th color chord." },
-          { name: "Eadd9/G#", frets: [4, -1, 4, 4, 0, 0], desc: "Slash bass inversion going up the scale." },
-          { name: "Amaj9", frets: [5, -1, 6, 6, 0, 0], desc: "Lush IV-chord major 9th." },
-          { name: "B7sus4", frets: [7, -1, 7, 8, 0, 0], desc: "Dominant drone chord." }
+          { name: "Em/G", frets: [3, 2, 2, 0, 0, -1], desc: "Deep Em with bass note on 6th string." },
+          { name: "Bm/A", frets: [-1, 0, 4, 4, 3, -1], desc: "Open A bass with ringing open strings." },
+          { name: "G/D", frets: [-1, -1, 0, 9, 8, -1], desc: "Higher register dyad over open D." },
+          { name: "Bm/D", frets: [-1, -1, 0, 9, 7, -1], desc: "Minor variation on D-string anchor." },
+          { name: "Am9/C", frets: [-1, 3, 5, 5, 0, 0], desc: "Lush minor 9th with ringing top drones." },
+          { name: "Cmaj7", frets: [-1, 3, 2, 0, 0, 0], desc: "Classic open Cmaj7 drone shape." },
+          { name: "D6", frets: [-1, 5, 4, 0, 0, 0], desc: "Move Cmaj7 up 2 frets for floating D6 sound." }
         ]
       },
-      phase3_modal: {
-        title: "Phase III: Borrowed Chords (Major to Minor)",
-        progression: ["C", "Cm", "F", "Fm", "C"],
+      {
+        id: "phase2_ambient_lush",
+        phase: "Phase II: Expanding Harmonies",
+        step: "Step 1",
+        title: "Descending Lush / Slowdive Movement",
+        guide: "Atmospheric chord movement inspired by Lush and Slowdive using descending basslines against sustained drone notes.",
+        criteria: "Let chords ring into each other naturally when played with distortion or heavy reverb.",
+        progression: ["Asus4", "A7sus4", "Dm/A", "Asus4", "D5/A"],
+        chords: [
+          { name: "Asus4", frets: [-1, 0, 2, 2, 3, 0], desc: "Driving 90s shoegaze rhythm anchor." },
+          { name: "A7sus4", frets: [-1, 0, 2, 0, 3, 3], desc: "Shift one note along the string for instant color." },
+          { name: "Dm/A", frets: [-1, 0, 3, 2, 3, 1], desc: "Dark descending post-rock bass movement." },
+          { name: "D5/A", frets: [-1, 0, 0, 2, 3, -1], desc: "Clear drone release." }
+        ]
+      },
+      {
+        id: "phase2_chordscale_drones",
+        phase: "Phase II: Expanding Harmonies",
+        step: "Step 3A",
+        title: "Key of E Chord-Scale Drones",
+        guide: "A chord-scale going up the neck in E Major. The open B and high E strings ring continuously across every shape.",
+        criteria: "Keep high strings ringing cleanly without accidental palm or finger muting.",
+        progression: ["Eadd9", "F#m11", "Eadd9/G#", "Amaj9", "B7add11", "C#m7", "C#m11/D#", "Eadd9"],
+        chords: [
+          { name: "Eadd9", frets: [0, 2, 4, 1, 0, 0], desc: "Open B & High E ring continuously as drones." },
+          { name: "F#m11", frets: [2, -1, 2, 2, 0, 0], desc: "Minor 11th step up the scale." },
+          { name: "Eadd9/G#", frets: [4, -1, 4, 4, 0, 0], desc: "Slash bass inversion traveling upward." },
+          { name: "Amaj9", frets: [5, -1, 6, 6, 0, 0], desc: "Lush IV-chord major 9th." },
+          { name: "B7add11", frets: [7, -1, 7, 8, 0, 0], desc: "Dominant drone chord." },
+          { name: "C#m7", frets: [9, -1, 9, 9, 0, 0], desc: "9th fret minor color." },
+          { name: "C#m11/D#", frets: [11, -1, 11, 11, 0, 0], desc: "11th fret chromatic approach." },
+          { name: "Eadd9(oct)", frets: [12, -1, 14, 13, 0, 0], desc: "12th fret octave peak." }
+        ]
+      },
+      {
+        id: "phase3_emaj7_center",
+        phase: "Phase III: Sonic Soundscapes",
+        step: "Step 1",
+        title: "Emaj7 Planetary Progression",
+        guide: "The central core of Phase III. All chord movements orbit around the high-register Emaj7 as their gravitational sun.",
+        criteria: "Arpeggiate individual strings to ensure every voice sustains.",
+        progression: ["Emaj7", "Aadd9", "Emaj7", "Aadd9", "Badd11", "E6add9/G#", "F#7sus4", "Emaj7"],
+        chords: [
+          { name: "Emaj7", frets: [0, 7, 9, 8, 9, 0], desc: "The Sun chord: all chords revolve around this." },
+          { name: "Aadd9", frets: [5, -1, 7, 6, 0, 0], desc: "5th fret lush IV chord." },
+          { name: "Badd11", frets: [7, -1, 9, 8, 0, 0], desc: "7th fret dominant step." },
+          { name: "E6add9/G#", frets: [4, -1, 4, 6, 0, 0], desc: "Descending root movement." },
+          { name: "F#7sus4", frets: [2, -1, 2, 4, 0, 0], desc: "Dark 2nd fret tension." },
+          { name: "E", frets: [0, 2, 2, 1, 0, 0], desc: "Open E grounding." }
+        ]
+      },
+      {
+        id: "phase3_modal",
+        phase: "Phase III: Sonic Soundscapes",
+        step: "Step 6",
+        title: "Borrowed Modal Modulation",
+        guide: "Shifting between parallel major and minor keys (Major to Minor) creates iconic, bittersweet harmonic emotional shifts.",
+        criteria: "Notice the immediate mood change when shifting from C to Cm and F to Fm.",
+        progression: ["C", "Cm", "G", "Gm", "F", "Fm", "Ab", "Eb", "Bb", "C"],
         chords: [
           { name: "C", frets: [-1, 3, 5, 5, 5, 3], desc: "Standard Major barre chord." },
           { name: "Cm", frets: [-1, 3, 5, 5, 4, 3], desc: "Parallel minor borrowed from C minor." },
+          { name: "G", frets: [3, 5, 5, 4, 3, 3], desc: "Major V chord." },
+          { name: "Gm", frets: [3, 5, 5, 3, 3, 3], desc: "Parallel minor Gm for sudden melancholic shift." },
           { name: "F", frets: [1, 3, 3, 2, 1, 1], desc: "Major IV chord." },
           { name: "Fm", frets: [1, 3, 3, 1, 1, 1], desc: "Minor iv chord for signature shoegaze sadness." },
-          { name: "Bb7", frets: [6, 8, 6, 7, 6, 6], desc: "Borrowed bVII dominant chord from C minor." }
+          { name: "Ab", frets: [4, 6, 6, 5, 4, 4], desc: "Borrowed bVI chord." },
+          { name: "Eb", frets: [-1, 6, 8, 8, 8, 6], desc: "Borrowed bIII major release." },
+          { name: "Bb", frets: [6, 8, 8, 7, 6, 6], desc: "Borrowed bVII dominant pull driving home to C." }
         ]
       }
-    };
+    ];
 
     let audio;
-    let currentSection = 'phase1_slide';
+    let activeModIndex = 0;
     let currentChord;
     let isPlaying = false;
     let playInterval = null;
     let currentStepIdx = 0;
-    const TOTAL_FRETS = 14;
+    const TOTAL_FRETS = 15;
+
+    // Load completed modules from LocalStorage
+    let completedModules = JSON.parse(localStorage.getItem('sg_completed_modules') || '{}');
+
+    function saveProgress() {
+      localStorage.setItem('sg_completed_modules', JSON.stringify(completedModules));
+      updateProgressBar();
+    }
+
+    function updateProgressBar() {
+      const total = CURRICULUM.length;
+      const completedCount = Object.values(completedModules).filter(Boolean).length;
+      const pct = Math.round((completedCount / total) * 100);
+      document.getElementById('progress-fill').style.width = `${pct}%`;
+      document.getElementById('progress-text').innerText = `${pct}% Done`;
+    }
 
     function highlightString(sIdx) {
       const note = document.getElementById(`note-${sIdx}`);
@@ -520,9 +836,10 @@
     function buildFretboard() {
       const fretboardEl = document.getElementById('fretboard');
       if (!fretboardEl) return;
-      
-      const singleDots = [3, 5, 7, 9];
-      const fretStep = (900 - 48) / TOTAL_FRETS;
+      fretboardEl.innerHTML = '<div class="nut"></div>';
+
+      const singleDots = [3, 5, 7, 9, 15];
+      const fretStep = (880 - 48) / TOTAL_FRETS;
 
       for (let i = 1; i <= TOTAL_FRETS; i++) {
         const xPos = 48 + i * fretStep;
@@ -557,7 +874,7 @@
         }
       }
 
-      const stringSpacing = 190 / 7;
+      const stringSpacing = 180 / 7;
       for (let s = 0; s < 6; s++) {
         const yPos = (s + 1) * stringSpacing;
         const strLine = document.createElement('div');
@@ -585,8 +902,8 @@
       document.querySelectorAll('.fret-note').forEach(el => el.remove());
 
       const fretboardEl = document.getElementById('fretboard');
-      const fretStep = (900 - 48) / TOTAL_FRETS;
-      const stringSpacing = 190 / 7;
+      const fretStep = (880 - 48) / TOTAL_FRETS;
+      const stringSpacing = 180 / 7;
 
       chord.frets.forEach((fret, sIdx) => {
         const statusEl = document.getElementById(`str-status-${sIdx}`);
@@ -625,27 +942,40 @@
 
     function triggerProgStep(idx) {
       currentStepIdx = idx;
-      const section = PLAYBOOK_DATA[currentSection];
+      const mod = CURRICULUM[activeModIndex];
       document.querySelectorAll('.prog-step').forEach(s => s.classList.remove('active'));
       
       const stepEl = document.getElementById(`step-${idx}`);
       if (stepEl) stepEl.classList.add('active');
 
-      const chordName = section.progression[idx];
-      const found = section.chords.find(c => c.name === chordName);
+      const chordName = mod.progression[idx];
+      const found = mod.chords.find(c => c.name === chordName);
       if (found) {
         renderChord(found);
         audio.strumChord(found.frets);
       }
     }
 
-    function loadSection(sectionKey) {
-      currentSection = sectionKey;
-      const section = PLAYBOOK_DATA[sectionKey];
+    function selectModule(index) {
+      activeModIndex = index;
+      const mod = CURRICULUM[index];
 
+      // Update UI texts
+      document.getElementById('mod-display-title').innerText = `${mod.step}: ${mod.title}`;
+      document.getElementById('mod-display-guide').innerText = mod.guide;
+      document.getElementById('mod-criteria-text').innerText = mod.criteria;
+
+      // Update Completion Button Status
+      const isDone = !!completedModules[mod.id];
+      const chkBtn = document.getElementById('mark-complete-btn');
+      chkBtn.classList.toggle('is-complete', isDone);
+      document.getElementById('chk-btn-icon').innerText = isDone ? '✓' : '○';
+      document.getElementById('chk-btn-label').innerText = isDone ? 'Completed' : 'Mark Complete';
+
+      // Build Chord Grid
       const grid = document.getElementById('chord-buttons');
       grid.innerHTML = '';
-      section.chords.forEach(c => {
+      mod.chords.forEach(c => {
         const btn = document.createElement('button');
         btn.className = 'chord-btn';
         btn.dataset.name = c.name;
@@ -657,37 +987,98 @@
         grid.appendChild(btn);
       });
 
+      // Build Progression Steps
       const progSteps = document.getElementById('prog-steps');
       progSteps.innerHTML = '';
-      section.progression.forEach((cName, idx) => {
+      mod.progression.forEach((cName, idx) => {
         const step = document.createElement('div');
         step.className = 'prog-step';
         step.id = `step-${idx}`;
-        step.style.cursor = 'pointer';
         step.innerHTML = `<strong>${idx + 1}. ${cName}</strong><div style="font-size:0.75rem; color:#94a3b8; margin-top:4px;">↓ ↑ ↓ ↑</div>`;
-        step.title = `Click to play measure ${idx + 1}: ${cName}`;
-        
         step.onclick = () => {
           const playProgBtn = document.getElementById('play-prog-btn');
-          if (isPlaying) {
-            playProgBtn.click();
-          }
+          if (isPlaying) playProgBtn.click();
           triggerProgStep(idx);
         };
-
         progSteps.appendChild(step);
       });
 
-      renderChord(section.chords[0]);
+      // Highlight active sidebar item
+      document.querySelectorAll('.module-item').forEach((item, i) => {
+        item.classList.toggle('active', i === index);
+      });
+
+      renderChord(mod.chords[0]);
+    }
+
+    function buildCurriculumSidebar() {
+      const container = document.getElementById('curriculum-list');
+      container.innerHTML = '';
+
+      let currentPhase = "";
+      let groupEl = null;
+
+      CURRICULUM.forEach((mod, idx) => {
+        if (mod.phase !== currentPhase) {
+          currentPhase = mod.phase;
+          groupEl = document.createElement('div');
+          groupEl.className = 'phase-group';
+
+          const title = document.createElement('span');
+          title.className = 'phase-title';
+          title.innerText = currentPhase;
+          groupEl.appendChild(title);
+          container.appendChild(groupEl);
+        }
+
+        const item = document.createElement('div');
+        item.className = 'module-item';
+        item.id = `mod-item-${mod.id}`;
+        if (completedModules[mod.id]) item.classList.add('completed');
+
+        item.innerHTML = `
+          <div class="mod-info">
+            <span class="mod-title">${mod.step}: ${mod.title}</span>
+            <span class="mod-subtitle">${mod.chords.length} voicings</span>
+          </div>
+          <div class="chk-indicator"></div>
+        `;
+
+        item.onclick = () => {
+          if (isPlaying) document.getElementById('play-prog-btn').click();
+          selectModule(idx);
+        };
+
+        groupEl.appendChild(item);
+      });
     }
 
     window.addEventListener('DOMContentLoaded', () => {
       audio = new ShoegazeAudio();
-      currentChord = PLAYBOOK_DATA[currentSection].chords[0];
 
       buildFretboard();
-      loadSection('phase1_slide');
+      buildCurriculumSidebar();
+      selectModule(0);
+      updateProgressBar();
 
+      // Mark Complete Toggle
+      document.getElementById('mark-complete-btn').onclick = () => {
+        const mod = CURRICULUM[activeModIndex];
+        const newState = !completedModules[mod.id];
+        completedModules[mod.id] = newState;
+
+        const sidebarItem = document.getElementById(`mod-item-${mod.id}`);
+        if (sidebarItem) sidebarItem.classList.toggle('completed', newState);
+
+        const chkBtn = document.getElementById('mark-complete-btn');
+        chkBtn.classList.toggle('is-complete', newState);
+        document.getElementById('chk-btn-icon').innerText = newState ? '✓' : '○';
+        document.getElementById('chk-btn-label').innerText = newState ? 'Completed' : 'Mark Complete';
+
+        saveProgress();
+      };
+
+      // Strum Button & Space Bar
       document.getElementById('strum-btn').onclick = () => {
         audio.strumChord(currentChord.frets);
       };
@@ -699,6 +1090,14 @@
         }
       });
 
+      // Next Module Button
+      document.getElementById('next-mod-btn').onclick = () => {
+        if (isPlaying) document.getElementById('play-prog-btn').click();
+        const nextIdx = (activeModIndex + 1) % CURRICULUM.length;
+        selectModule(nextIdx);
+      };
+
+      // Progression Player Loop
       const playProgBtn = document.getElementById('play-prog-btn');
       playProgBtn.onclick = () => {
         if (isPlaying) {
@@ -712,19 +1111,20 @@
           playProgBtn.innerText = 'Stop';
           playProgBtn.classList.add('active');
 
-          const section = PLAYBOOK_DATA[currentSection];
+          const mod = CURRICULUM[activeModIndex];
           currentStepIdx = 0;
           const bpm = parseInt(document.getElementById('tempo-range').value);
           const intervalMs = (60000 / bpm) * 2;
 
           triggerProgStep(currentStepIdx);
           playInterval = setInterval(() => {
-            currentStepIdx = (currentStepIdx + 1) % section.progression.length;
+            currentStepIdx = (currentStepIdx + 1) % mod.progression.length;
             triggerProgStep(currentStepIdx);
           }, intervalMs);
         }
       };
 
+      // Tempo Slider
       const tempoSlider = document.getElementById('tempo-range');
       tempoSlider.oninput = (e) => {
         document.getElementById('bpm-val').innerText = e.target.value;
@@ -732,11 +1132,6 @@
           playProgBtn.click();
           playProgBtn.click();
         }
-      };
-
-      document.getElementById('book-section').onchange = (e) => {
-        if (isPlaying) playProgBtn.click();
-        loadSection(e.target.value);
       };
     });
   </script>
