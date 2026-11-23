@@ -1,0 +1,1847 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Circle of Fifths & Scale Explorer | Shoegaze Guitar Workbench</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            studio: {
+              950: '#09090b', // zinc-950
+              900: '#18181b', // zinc-900
+              850: '#1f1f24',
+              800: '#27272a', // zinc-800
+              700: '#3f3f46',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #09090b;
+      color: #f4f4f5;
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 85% 80%, rgba(20, 184, 166, 0.07) 0%, transparent 45%);
+      min-height: 100vh;
+    }
+
+    /* Custom Scrollbar for Fretboard on Mobile */
+    .fretboard-scroll::-webkit-scrollbar {
+      height: 8px;
+    }
+    .fretboard-scroll::-webkit-scrollbar-track {
+      background: #18181b;
+      border-radius: 4px;
+    }
+    .fretboard-scroll::-webkit-scrollbar-thumb {
+      background: #3f3f46;
+      border-radius: 4px;
+    }
+    .fretboard-scroll::-webkit-scrollbar-thumb:hover {
+      background: #52525b;
+    }
+
+    /* SVG Wedge Hover & Active Transitions */
+    .cof-wedge {
+      cursor: pointer;
+      transition: fill 0.2s ease, stroke 0.2s ease, filter 0.2s ease;
+    }
+    .cof-wedge:hover {
+      filter: brightness(1.22);
+    }
+    .cof-label {
+      pointer-events: none;
+      user-select: none;
+      transition: fill 0.2s ease, font-weight 0.2s ease;
+    }
+
+    /* Fretboard Note Node Pulse */
+    @keyframes notePing {
+      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(129, 140, 248, 0.7); }
+      50% { transform: scale(1.18); box-shadow: 0 0 14px 4px rgba(129, 140, 248, 0.4); }
+      100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(129, 140, 248, 0); }
+    }
+    .note-playing {
+      animation: notePing 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    /* Sustained Active Highlight during Scale Sequence Playback */
+    .note-pill-active {
+      transform: translateY(-2px) scale(1.04);
+      border-color: #f8fafc !important;
+      box-shadow: 0 0 18px rgba(129, 140, 248, 0.55), inset 0 0 12px rgba(129, 140, 248, 0.25);
+      background-color: rgba(79, 70, 229, 0.45) !important;
+    }
+    .fret-node circle {
+      transition: r 0.16s ease, stroke 0.16s ease, stroke-width 0.16s ease, filter 0.16s ease;
+    }
+    .fret-node-active circle {
+      stroke: #ffffff !important;
+      stroke-width: 3.2px !important;
+      filter: drop-shadow(0 0 8px rgba(165, 180, 252, 0.95));
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-indigo-500/30 selection:text-indigo-200">
+
+  <!-- Top Navigation Bar -->
+  <header class="sticky top-0 z-40 border-b border-zinc-800/80 bg-zinc-950/85 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <a href="index.html" class="inline-flex items-center gap-2 text-xs sm:text-sm font-medium text-zinc-400 hover:text-indigo-300 transition-colors py-1.5 px-2.5 rounded-lg hover:bg-zinc-900 border border-transparent hover:border-zinc-800">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+          </svg>
+          <span>Shoegaze Guitar Workbench</span>
+        </a>
+        <span class="hidden sm:inline text-zinc-700">/</span>
+        <h1 class="hidden sm:block text-sm font-semibold tracking-tight text-zinc-100">
+          Circle of Fifths &amp; Scale Explorer
+        </h1>
+      </div>
+
+      <!-- Audio Controls & Enharmonic Toggle -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <button id="btn-enharmonic" title="Toggle Enharmonic Spelling (Sharps vs Flats for ambiguous keys)" class="hidden md:inline-flex items-center gap-1.5 text-xs font-mono px-2.5 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 hover:border-indigo-500/50 hover:text-indigo-300 transition">
+          <span id="enharmonic-label">♯ / ♭ Auto</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- Upper Grid: Circle of Fifths (Left) + Scale Explorer & Theory Readout (Right) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+      <!-- Left Column: Interactive SVG Circle of Fifths -->
+      <section class="lg:col-span-5 bg-zinc-900/75 border border-zinc-800/90 rounded-2xl p-4 sm:p-5 shadow-xl backdrop-blur-sm flex flex-col items-center">
+        <div class="w-full flex items-center justify-between mb-2">
+          <div>
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-zinc-300">Circle of Fifths</h2>
+            <p class="text-xs text-zinc-500">Outer: Major &bull; Inner: Relative Minor</p>
+          </div>
+          <!-- Key Signature Pill -->
+          <div id="key-sig-badge" class="text-right font-mono text-xs px-2.5 py-1 rounded-lg bg-zinc-950 border border-zinc-800 text-teal-300">
+            0 ♯ / ♭
+          </div>
+        </div>
+
+        <!-- SVG Container -->
+        <div class="relative w-full max-w-[390px] aspect-square my-1">
+          <svg id="cof-svg" viewBox="0 0 420 420" class="w-full h-full drop-shadow-[0_0_25px_rgba(99,102,241,0.12)]"></svg>
+        </div>
+
+        <!-- Legend & Sharp/Flat Order -->
+        <div class="w-full pt-3 border-t border-zinc-800/80 space-y-2.5">
+          <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[11px] text-zinc-400">
+            <span class="inline-flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span> Tonal Center
+            </span>
+            <span class="inline-flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-violet-500/40 border border-violet-400/60"></span> Diatonic Slice (IV–I–V)
+            </span>
+            <span class="inline-flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-500/30 border border-amber-400/60"></span> Leading Tone (vii&deg;)
+            </span>
+          </div>
+          <div class="bg-zinc-950/90 border border-zinc-800/80 rounded-xl px-3 py-2 flex items-center justify-between text-xs">
+            <span class="text-zinc-500 font-medium">Key Accidentals:</span>
+            <span id="key-accidentals-list" class="font-mono text-zinc-200 tracking-wide">None (All Natural)</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: Scale Selector, Spelled Notes, Formula & Sonic Vibe -->
+      <section class="lg:col-span-7 space-y-5">
+
+        <!-- Active Tonal Center & Scale Controls Card -->
+        <div class="bg-zinc-900/75 border border-zinc-800/90 rounded-2xl p-5 shadow-xl backdrop-blur-sm space-y-5">
+          
+          <!-- Top Header: Current Root + Scale Title & Quality Toggle -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-zinc-800/80">
+            <div>
+              <div class="flex items-center gap-2">
+                <span id="ring-type-badge" class="text-[11px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+                  Major Root
+                </span>
+                <span id="relative-key-text" class="text-xs text-zinc-400">
+                  Relative Minor: <strong class="text-zinc-200 font-mono">Am</strong>
+                </span>
+              </div>
+              <h2 id="active-scale-title" class="text-2xl sm:text-3xl font-bold tracking-tight text-white mt-1">
+                C Ionian (Major)
+              </h2>
+            </div>
+
+            <!-- Root Note Quick-Select Dropdown (Synced with Circle) -->
+            <div class="flex items-center gap-2">
+              <label for="root-select" class="text-xs text-zinc-400">Root:</label>
+              <select id="root-select" class="font-mono text-sm bg-zinc-950 border border-zinc-700/80 text-zinc-100 rounded-xl px-3 py-2 focus:outline-none focus:border-indigo-500">
+                <!-- Populated via JS -->
+              </select>
+            </div>
+          </div>
+
+          <!-- Scale Category Pills -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold uppercase tracking-wider text-zinc-400">Select Mode or Scale</span>
+              <span id="scale-category-label" class="text-xs font-mono text-violet-300">Diatonic Modes</span>
+            </div>
+
+            <!-- Grouped Scale Buttons -->
+            <div id="scale-selector-container" class="space-y-2.5">
+              <!-- Populated dynamically with clean categorized pill groups -->
+            </div>
+          </div>
+
+          <!-- Spelled Notes & Interval Formula Strip -->
+          <div class="bg-zinc-950/90 border border-zinc-800 rounded-xl p-4 space-y-3.5">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-xs font-medium text-zinc-400">Spelled Scale Notes <span class="text-zinc-600">(Click pill to audition)</span></span>
+              <span id="scale-formula-badge" class="font-mono text-xs text-teal-300 bg-teal-950/60 border border-teal-800/60 px-2.5 py-0.5 rounded-md">
+                1 - 2 - 3 - 4 - 5 - 6 - 7
+              </span>
+            </div>
+
+            <!-- Interactive Note Pills -->
+            <div id="spelled-notes-row" class="grid grid-cols-4 sm:grid-cols-7 gap-2">
+              <!-- Populated via JS -->
+            </div>
+
+            <!-- Inline Scale Playback Control Strip -->
+            <div class="pt-3 border-t border-zinc-800/80 flex flex-wrap items-center justify-between gap-2.5">
+              <div class="flex flex-wrap items-center gap-2">
+                <!-- Play / Stop Button -->
+                <button id="btn-play-scale" class="inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-950/60 transition active:scale-95">
+                  <svg id="play-icon" class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>
+                  </svg>
+                  <span id="play-scale-text">Play Scale</span>
+                </button>
+
+                <!-- Direction Toggle -->
+                <div class="inline-flex rounded-lg bg-zinc-900 p-0.5 border border-zinc-800" role="group" aria-label="Scale Playback Direction">
+                  <button data-dir="asc" class="dir-btn px-2 py-1 text-[11px] font-mono font-medium rounded-md text-zinc-400 hover:text-zinc-200 transition" title="Ascending (1 → 8)">1→8</button>
+                  <button data-dir="desc" class="dir-btn px-2 py-1 text-[11px] font-mono font-medium rounded-md text-zinc-400 hover:text-zinc-200 transition" title="Descending (8 → 1)">8→1</button>
+                  <button data-dir="updown" class="dir-btn px-2 py-1 text-[11px] font-mono font-medium rounded-md bg-zinc-800 text-indigo-300 transition" title="Up & Down (1 → 8 → 1)">1→8→1</button>
+                </div>
+              </div>
+
+              <!-- Tempo Presets + Fine BPM Slider -->
+              <div class="flex flex-wrap items-center gap-2">
+                <div class="inline-flex rounded-lg bg-zinc-900 p-0.5 border border-zinc-800" role="group" aria-label="Tempo Presets">
+                  <button data-bpm="55" class="tempo-preset-btn px-2 py-1 text-[11px] font-medium rounded-md text-zinc-400 hover:text-zinc-200 transition">Slow</button>
+                  <button data-bpm="70" class="tempo-preset-btn px-2 py-1 text-[11px] font-medium rounded-md bg-zinc-800 text-teal-300 transition">Med</button>
+                  <button data-bpm="105" class="tempo-preset-btn px-2 py-1 text-[11px] font-medium rounded-md text-zinc-400 hover:text-zinc-200 transition">Brisk</button>
+                </div>
+                <div class="flex items-center gap-1.5 bg-zinc-900/90 border border-zinc-800 rounded-lg px-2.5 py-1">
+                  <input id="bpm-slider" type="range" min="40" max="130" value="70" class="w-16 sm:w-20 accent-indigo-500 cursor-pointer h-1.5 bg-zinc-800 rounded-lg" aria-label="Playback Tempo BPM" />
+                  <span id="bpm-readout" class="font-mono text-[11px] font-semibold text-zinc-200 w-14 text-right">70 BPM</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Guitarist / Shoegaze Sonic Vibe Box -->
+          <div class="bg-gradient-to-r from-indigo-950/40 via-violet-950/30 to-zinc-900/40 border border-indigo-500/20 rounded-xl p-4 flex gap-3.5 items-start">
+            <div class="p-2 rounded-lg bg-indigo-500/15 text-indigo-300 shrink-0 mt-0.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+              </svg>
+            </div>
+            <div class="space-y-1">
+              <div class="text-xs font-semibold uppercase tracking-wider text-indigo-300">Sonic Character &amp; Fretboard Texture</div>
+              <p id="scale-vibe-text" class="text-xs sm:text-sm text-zinc-300 leading-relaxed">
+                Bright, open, and resolved. Ideal for shimmering chorus-drenched arpeggios, jangle-pop voicings, and soaring major-key wall-of-sound melodies.
+              </p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Diatonic Chords & Shoegaze Voicings Strip -->
+        <div class="bg-zinc-900/75 border border-zinc-800/90 rounded-2xl p-5 shadow-xl backdrop-blur-sm space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h3 class="text-sm font-semibold uppercase tracking-wider text-zinc-300">Harmonized Scale Chords</h3>
+              <p class="text-xs text-zinc-500">Click any chord card to strum an ambient guitar voicing</p>
+            </div>
+            <div class="inline-flex rounded-lg bg-zinc-950 p-0.5 border border-zinc-800">
+              <button id="btn-chord-triads" class="px-2.5 py-1 text-xs font-medium rounded-md text-zinc-400 hover:text-zinc-200 transition">Triads</button>
+              <button id="btn-chord-sevenths" class="px-2.5 py-1 text-xs font-medium rounded-md bg-indigo-600 text-white transition">7th / Lush</button>
+            </div>
+          </div>
+
+          <div id="diatonic-chords-grid" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2.5">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+      </section>
+    </div>
+
+    <!-- Bottom Full-Width Section: Interactive 6-String Guitar Fretboard Visualizer -->
+    <section class="bg-zinc-900/80 border border-zinc-800/90 rounded-2xl p-4 sm:p-6 shadow-2xl backdrop-blur-sm space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <div class="flex items-center gap-2.5">
+            <h2 class="text-base sm:text-lg font-semibold text-zinc-100">6-String Guitar Fretboard</h2>
+            <span class="text-xs font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">E A D G B E</span>
+          </div>
+          <p class="text-xs text-zinc-400 mt-0.5">Frets 0–15 &bull; Click any highlighted fret to hear its pitch</p>
+        </div>
+
+        <!-- Fretboard Controls & Color Legend -->
+        <div class="flex flex-wrap items-center gap-3">
+          <!-- Legend -->
+          <div class="flex items-center gap-3 text-xs text-zinc-400 bg-zinc-950/80 px-3 py-1.5 rounded-xl border border-zinc-800">
+            <span class="inline-flex items-center gap-1.5">
+              <span class="w-3 h-3 rounded-full bg-indigo-500 ring-2 ring-indigo-300/40"></span> Root (1)
+            </span>
+            <span class="inline-flex items-center gap-1.5">
+              <span class="w-3 h-3 rounded-full bg-teal-500"></span> 3rd / 5th
+            </span>
+            <span class="inline-flex items-center gap-1.5">
+              <span class="w-3 h-3 rounded-full bg-violet-500/85"></span> Color Tones
+            </span>
+          </div>
+
+          <!-- Toggle Note Names vs Degrees -->
+          <div class="inline-flex rounded-xl bg-zinc-950 p-1 border border-zinc-800">
+            <button id="btn-display-notes" class="px-3 py-1 text-xs font-medium rounded-lg bg-zinc-800 text-white transition">
+              Note Names
+            </button>
+            <button id="btn-display-degrees" class="px-3 py-1 text-xs font-medium rounded-lg text-zinc-400 hover:text-zinc-200 transition">
+              Intervals
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scrollable Responsive Fretboard Wrapper -->
+      <div class="fretboard-scroll w-full overflow-x-auto pb-2">
+        <div id="fretboard-container" class="min-w-[860px] select-none">
+          <!-- SVG Fretboard rendered here by JS -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Subtle Footer -->
+  <footer class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-xs text-zinc-500 border-t border-zinc-900 mt-8">
+    Part of the <a href="index.html" class="text-zinc-400 hover:text-indigo-400 underline underline-offset-4">Shoegaze Guitar Workbench</a> &bull; Web Audio Synth Engine &amp; Exact Enharmonic Spelling
+  </footer>
+
+  <!-- Application Logic -->
+  <script>
+    /**
+     * ============================================================================
+     * 1. MUSIC THEORY ENGINE & DATA DEFINITIONS
+     * ============================================================================
+     */
+
+    const LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+    const NATURAL_SEMITONES = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+
+    // 12 positions around the Circle of Fifths (clockwise starting at 12 o'clock = C / Am)
+    const CIRCLE_KEYS = [
+      {
+        index: 0,
+        major: { label: 'C', root: 'C', pc: 0, acc: 0, accType: 'none', accNotes: [] },
+        minor: { label: 'Am', root: 'A', pc: 9, acc: 0, accType: 'none', accNotes: [] }
+      },
+      {
+        index: 1,
+        major: { label: 'G', root: 'G', pc: 7, acc: 1, accType: 'sharp', accNotes: ['F♯'] },
+        minor: { label: 'Em', root: 'E', pc: 4, acc: 1, accType: 'sharp', accNotes: ['F♯'] }
+      },
+      {
+        index: 2,
+        major: { label: 'D', root: 'D', pc: 2, acc: 2, accType: 'sharp', accNotes: ['F♯', 'C♯'] },
+        minor: { label: 'Bm', root: 'B', pc: 11, acc: 2, accType: 'sharp', accNotes: ['F♯', 'C♯'] }
+      },
+      {
+        index: 3,
+        major: { label: 'A', root: 'A', pc: 9, acc: 3, accType: 'sharp', accNotes: ['F♯', 'C♯', 'G♯'] },
+        minor: { label: 'F♯m', root: 'F#', pc: 6, acc: 3, accType: 'sharp', accNotes: ['F♯', 'C♯', 'G♯'] }
+      },
+      {
+        index: 4,
+        major: { label: 'E', root: 'E', pc: 4, acc: 4, accType: 'sharp', accNotes: ['F♯', 'C♯', 'G♯', 'D♯'] },
+        minor: { label: 'C♯m', root: 'C#', pc: 1, acc: 4, accType: 'sharp', accNotes: ['F♯', 'C♯', 'G♯', 'D♯'] }
+      },
+      {
+        index: 5,
+        major: {
+          label: 'B / C♭',
+          root: 'B', altRoot: 'Cb', pc: 11,
+          acc: 5, altAcc: 7, accType: 'sharp', altAccType: 'flat',
+          accNotes: ['F♯', 'C♯', 'G♯', 'D♯', 'A♯'],
+          altAccNotes: ['B♭', 'E♭', 'A♭', 'D♭', 'G♭', 'C♭', 'F♭']
+        },
+        minor: {
+          label: 'G♯m / A♭m',
+          root: 'G#', altRoot: 'Ab', pc: 8,
+          acc: 5, altAcc: 7, accType: 'sharp', altAccType: 'flat',
+          accNotes: ['F♯', 'C♯', 'G♯', 'D♯', 'A♯'],
+          altAccNotes: ['B♭', 'E♭', 'A♭', 'D♭', 'G♭', 'C♭', 'F♭']
+        }
+      },
+      {
+        index: 6,
+        major: {
+          label: 'F♯ / G♭',
+          root: 'F#', altRoot: 'Gb', pc: 6,
+          acc: 6, altAcc: 6, accType: 'sharp', altAccType: 'flat',
+          accNotes: ['F♯', 'C♯', 'G♯', 'D♯', 'A♯', 'E♯'],
+          altAccNotes: ['B♭', 'E♭', 'A♭', 'D♭', 'G♭', 'C♭']
+        },
+        minor: {
+          label: 'D♯m / E♭m',
+          root: 'Eb', altRoot: 'D#', pc: 3,
+          acc: 6, altAcc: 6, accType: 'flat', altAccType: 'sharp',
+          accNotes: ['B♭', 'E♭', 'A♭', 'D♭', 'G♭', 'C♭'],
+          altAccNotes: ['F♯', 'C♯', 'G♯', 'D♯', 'A♯', 'E♯']
+        }
+      },
+      {
+        index: 7,
+        major: {
+          label: 'D♭ / C♯',
+          root: 'Db', altRoot: 'C#', pc: 1,
+          acc: 5, altAcc: 7, accType: 'flat', altAccType: 'sharp',
+          accNotes: ['B♭', 'E♭', 'A♭', 'D♭', 'G♭'],
+          altAccNotes: ['F♯', 'C♯', 'G♯', 'D♯', 'A♯', 'E♯', 'B♯']
+        },
+        minor: {
+          label: 'B♭m',
+          root: 'Bb', altRoot: 'A#', pc: 10,
+          acc: 5, altAcc: 7, accType: 'flat', altAccType: 'sharp',
+          accNotes: ['B♭', 'E♭', 'A♭', 'D♭', 'G♭'],
+          altAccNotes: ['F♯', 'C♯', 'G♯', 'D♯', 'A♯', 'E♯', 'B♯']
+        }
+      },
+      {
+        index: 8,
+        major: { label: 'A♭', root: 'Ab', pc: 8, acc: 4, accType: 'flat', accNotes: ['B♭', 'E♭', 'A♭', 'D♭'] },
+        minor: { label: 'Fm', root: 'F', pc: 5, acc: 4, accType: 'flat', accNotes: ['B♭', 'E♭', 'A♭', 'D♭'] }
+      },
+      {
+        index: 9,
+        major: { label: 'E♭', root: 'Eb', pc: 3, acc: 3, accType: 'flat', accNotes: ['B♭', 'E♭', 'A♭'] },
+        minor: { label: 'Cm', root: 'C', pc: 0, acc: 3, accType: 'flat', accNotes: ['B♭', 'E♭', 'A♭'] }
+      },
+      {
+        index: 10,
+        major: { label: 'B♭', root: 'Bb', pc: 10, acc: 2, accType: 'flat', accNotes: ['B♭', 'E♭'] },
+        minor: { label: 'Gm', root: 'G', pc: 7, acc: 2, accType: 'flat', accNotes: ['B♭', 'E♭'] }
+      },
+      {
+        index: 11,
+        major: { label: 'F', root: 'F', pc: 5, acc: 1, accType: 'flat', accNotes: ['B♭'] },
+        minor: { label: 'Dm', root: 'D', pc: 2, acc: 1, accType: 'flat', accNotes: ['B♭'] }
+      }
+    ];
+
+    // Comprehensive Scale & Mode Library
+    const SCALES = [
+      // Diatonic Modes
+      {
+        id: 'ionian',
+        name: 'Ionian (Major)',
+        shortName: 'Ionian',
+        category: 'Diatonic Modes',
+        ringHint: 'major',
+        semitones: [0, 2, 4, 5, 7, 9, 11],
+        degrees: ['1', '2', '3', '4', '5', '6', '7'],
+        letterOffsets: [0, 1, 2, 3, 4, 5, 6],
+        vibe: 'Bright, open, and resolved. Ideal for shimmering chorus-drenched arpeggios, jangle-pop voicings, and soaring major-key wall-of-sound melodies.'
+      },
+      {
+        id: 'dorian',
+        name: 'Dorian',
+        shortName: 'Dorian',
+        category: 'Diatonic Modes',
+        ringHint: 'minor',
+        semitones: [0, 2, 3, 5, 7, 9, 10],
+        degrees: ['1', '2', '♭3', '4', '5', '6', '♭7'],
+        letterOffsets: [0, 1, 2, 3, 4, 5, 6],
+        vibe: 'Melancholic yet bittersweetly hopeful thanks to the raised natural 6th. A staple of post-punk basslines, moody reverb swells, and hypnotic minor-to-major IV progressions.'
+      },
+      {
+        id: 'phrygian',
+        name: 'Phrygian',
+        shortName: 'Phrygian',
+        category: 'Diatonic Modes',
+        ringHint: 'minor',
+        semitones: [0, 1, 3, 5, 7, 8, 10],
+        degrees: ['1', '♭2', '♭3', '4', '5', '♭6', '♭7'],
+        letterOffsets: [0, 1, 2, 3, 4, 5, 6],
+        vibe: 'Dark, brooding, and hypnotic with a signature half-step pull from ♭2 to 1. Huge for heavy fuzz riffs, drone-rock pedal tones, and gothic post-punk tension.'
+      },
+      {
+        id: 'lydian',
+        name: 'Lydian',
+        shortName: 'Lydian',
+        category: 'Diatonic Modes',
+        ringHint: 'major',
+        semitones: [0, 2, 4, 6, 7, 9, 11],
+        degrees: ['1', '2', '3', '♯4', '5', '6', '7'],
+        letterOffsets: [0, 1, 2, 3, 4, 5, 6],
+        vibe: 'Weightless, celestial, and floating. The raised ♯4 removes harmonic gravity—the quintessential dream-pop and shoegaze sound when paired with reverse reverb and maj7♯11 chords.'
+      },
+      {
+        id: 'mixolydian',
+        name: 'Mixolydian',
+        shortName: 'Mixolydian',
+        category: 'Diatonic Modes',
+        ringHint: 'major',
+        semitones: [0, 2, 4, 5, 7, 9, 10],
+        degrees: ['1', '2', '3', '4', '5', '6', '♭7'],
+        letterOffsets: [0, 1, 2, 3, 4, 5, 6],
+        vibe: 'Anthemic, driving, and slightly hazy. The ♭7 softens the major triad into a warm, psychedelic rock groove—great for open-string drones and ♭VII–IV–I loops.'
+      },
+      {
+        id: 'aeolian',
+        name: 'Aeolian (Natural Minor)',
+        shortName: 'Aeolian',
+        category: 'Diatonic Modes',
+        ringHint: 'minor',
+        semitones: [0, 2, 3, 5, 7, 8, 10],
+        degrees: ['1', '2', '♭3', '4', '5', '♭6', '♭7'],
+        letterOffsets: [0, 1, 2, 3, 4, 5, 6],
+        vibe: 'Nostalgic, introspective, and emotionally heavy. The foundation of classic dark wave, slowcore, and sweeping minor-key shoegaze crescendos.'
+      },
+      {
+        id: 'locrian',
+        name: 'Locrian',
+        shortName: 'Locrian',
+        category: 'Diatonic Modes',
+        ringHint: 'minor',
+        semitones: [0, 1, 3, 5, 6, 8, 10],
+        degrees: ['1', '♭2', '♭3', '4', '♭5', '♭6', '♭7'],
+        letterOffsets: [0, 1, 2, 3, 4, 5, 6],
+        vibe: 'Unsettled, eerie, and dissonant due to the diminished ♭5. Useful for textural noise passages, angular post-punk dissonance, and avant-garde transitions.'
+      },
+
+      // Harmonic & Melodic Minor
+      {
+        id: 'harmonic_minor',
+        name: 'Harmonic Minor',
+        shortName: 'Harmonic Min',
+        category: 'Harmonic & Melodic Minor',
+        ringHint: 'minor',
+        semitones: [0, 2, 3, 5, 7, 8, 11],
+        degrees: ['1', '2', '♭3', '4', '5', '♭6', '7'],
+        letterOffsets: [0, 1, 2, 3, 4, 5, 6],
+        vibe: 'Dramatic and gothic. Combining the dark ♭6 with a sharp leading-tone 7 creates an expressive augmented-second leap favored in dark post-punk and baroque melodies.'
+      },
+      {
+        id: 'melodic_minor',
+        name: 'Melodic Minor (Jazz)',
+        shortName: 'Melodic Min',
+        category: 'Harmonic & Melodic Minor',
+        ringHint: 'minor',
+        semitones: [0, 2, 3, 5, 7, 9, 11],
+        degrees: ['1', '2', '♭3', '4', '5', '6', '7'],
+        letterOffsets: [0, 1, 2, 3, 4, 5, 6],
+        vibe: 'Sophisticated, noir, and cinema-like. A minor ♭3 paired with an upper major tetrachord (6 and 7) yields lush m(maj7) chords and modern post-rock harmonies.'
+      },
+      {
+        id: 'phrygian_dominant',
+        name: 'Phrygian Dominant',
+        shortName: 'Phrygian Dom',
+        category: 'Harmonic & Melodic Minor',
+        ringHint: 'major',
+        semitones: [0, 1, 4, 5, 7, 8, 10],
+        degrees: ['1', '♭2', '3', '4', '5', '♭6', '♭7'],
+        letterOffsets: [0, 1, 2, 3, 4, 5, 6],
+        vibe: 'Hypnotic, desert-psychedelic, and exotic (5th mode of Harmonic Minor). The major 3rd against the ♭2 creates immediate Middle Eastern and psych-rock tension.'
+      },
+
+      // Pentatonic & Blues
+      {
+        id: 'major_pentatonic',
+        name: 'Major Pentatonic',
+        shortName: 'Maj Pentatonic',
+        category: 'Pentatonic & Blues',
+        ringHint: 'major',
+        semitones: [0, 2, 4, 7, 9],
+        degrees: ['1', '2', '3', '5', '6'],
+        letterOffsets: [0, 1, 2, 4, 5],
+        vibe: 'Pure, vocal, and consonance-rich without half-step tension. Effortless for ambient slide guitar, delay-soaked lead hooks, and open-tuning textures.'
+      },
+      {
+        id: 'minor_pentatonic',
+        name: 'Minor Pentatonic',
+        shortName: 'Min Pentatonic',
+        category: 'Pentatonic & Blues',
+        ringHint: 'minor',
+        semitones: [0, 3, 5, 7, 10],
+        degrees: ['1', '♭3', '4', '5', '♭7'],
+        letterOffsets: [0, 2, 3, 4, 6],
+        vibe: 'Raw, muscular, and timeless. Cuts straight through dense layers of fuzz and reverb with vocal bends and resonant box-position riffs.'
+      },
+      {
+        id: 'blues',
+        name: 'Blues Scale',
+        shortName: 'Blues',
+        category: 'Pentatonic & Blues',
+        ringHint: 'minor',
+        semitones: [0, 3, 5, 6, 7, 10],
+        degrees: ['1', '♭3', '4', '♭5', '5', '♭7'],
+        letterOffsets: [0, 2, 3, 3, 4, 6],
+        vibe: 'Gritty and expressive. Adds the chromatic ♭5 passing tone to Minor Pentatonic for soulful phrasing, microtonal bends, and garage-psych swagger.'
+      }
+    ];
+
+    // Standard Guitar Tuning (String 1 High E down to String 6 Low E for visual top-to-bottom layout)
+    const GUITAR_STRINGS = [
+      { stringNum: 1, name: 'e', midiOpen: 64 }, // E4
+      { stringNum: 2, name: 'B', midiOpen: 59 }, // B3
+      { stringNum: 3, name: 'G', midiOpen: 55 }, // G3
+      { stringNum: 4, name: 'D', midiOpen: 50 }, // D3
+      { stringNum: 5, name: 'A', midiOpen: 45 }, // A2
+      { stringNum: 6, name: 'E', midiOpen: 40 }  // E2
+    ];
+
+    // Application State
+    const state = {
+      wedgeIndex: 0,          // 0..11 on Circle of Fifths
+      ring: 'major',          // 'major' or 'minor'
+      useAltSpelling: false,  // toggle for B/Cb, F#/Gb, Db/C#
+      scaleId: 'ionian',      // active scale ID
+      displayMode: 'notes',   // 'notes' or 'degrees'
+      chordMode: 'sevenths',  // 'triads' or 'sevenths'
+      isPlayingSequence: false,
+      playbackBpm: 70,        // deliberate quarter-note pace (~857ms per note)
+      playbackDirection: 'updown', // 'asc' | 'desc' | 'updown'
+      playbackTimers: []      // active setTimeout IDs for clean cancellation
+    };
+
+    /**
+     * ============================================================================
+     * 2. EXACT ENHARMONIC NOTE SPELLING & CHORD HARMONIZER
+     * ============================================================================
+     */
+
+    // Parse a root string like "F#", "Bb", "Cb", "C" into { letter, accidentalOffset, pc }
+    function parseRootNote(rootStr) {
+      const letter = rootStr[0].toUpperCase();
+      let acc = 0;
+      for (let i = 1; i < rootStr.length; i++) {
+        if (rootStr[i] === '#' || rootStr[i] === '♯') acc += 1;
+        if (rootStr[i] === 'b' || rootStr[i] === '♭') acc -= 1;
+      }
+      const pc = (NATURAL_SEMITONES[letter] + acc + 120) % 12;
+      return { letter, acc, pc };
+    }
+
+    // Format accidental offset (-2..+2) using crisp Unicode symbols
+    function formatAccidental(diff) {
+      if (diff === 0) return '';
+      if (diff === 1) return '♯';
+      if (diff === 2) return '𝄪';
+      if (diff === -1) return '♭';
+      if (diff === -2) return '𝄫';
+      return '';
+    }
+
+    // Spell a scale cleanly according to diatonic letter steps
+    function computeScaleNotes(rootStr, scaleObj) {
+      const rootInfo = parseRootNote(rootStr);
+      const rootLetterIdx = LETTERS.indexOf(rootInfo.letter);
+
+      return scaleObj.semitones.map((semi, idx) => {
+        const targetPc = (rootInfo.pc + semi) % 12;
+        const letterIdx = (rootLetterIdx + scaleObj.letterOffsets[idx]) % 7;
+        const letter = LETTERS[letterIdx];
+        const naturalPc = NATURAL_SEMITONES[letter];
+
+        // Find smallest signed difference in [-6, +5]
+        let diff = (targetPc - naturalPc + 12) % 12;
+        if (diff > 6) diff -= 12;
+
+        // Edge case guard: if diff exceeds double sharp/flat, fallback cleanly
+        const spelled = letter + formatAccidental(diff);
+        const degree = scaleObj.degrees[idx];
+
+        // Role classification for color-coding
+        let role = 'color'; // 2nds, 4ths, 6ths, 7ths
+        if (idx === 0) {
+          role = 'root';
+        } else if (degree === '3' || degree === '♭3' || degree === '5' || degree === '♭5' || degree === '♯5') {
+          role = 'chordTone';
+        }
+
+        return {
+          pc: targetPc,
+          semitoneOffset: semi,
+          note: spelled,
+          degree: degree,
+          role: role
+        };
+      });
+    }
+
+    // Harmonize 7-note scales into Triads & 7th Chords (or pentatonic chord companions)
+    function computeHarmonizedChords(spelledNotes, scaleObj) {
+      const len = spelledNotes.length;
+      const romanBase = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
+
+      // For 5 or 6 note scales (Pentatonic/Blues), build chords from each scale degree using intervals
+      if (len < 7) {
+        return spelledNotes.map((n, i) => {
+          const n3 = spelledNotes[(i + 1) % len];
+          const n5 = spelledNotes[(i + 2) % len];
+          const int3 = (n3.pc - n.pc + 12) % 12;
+          const int5 = (n5.pc - n.pc + 12) % 12;
+
+          let quality = '';
+          let numeral = n.degree;
+          if (int3 === 3 && int5 === 7) {
+            quality = 'm';
+            numeral = n.degree.toLowerCase();
+          } else if (int3 === 4 && int5 === 7) {
+            quality = '';
+          } else if (int3 === 3 && int5 === 6) {
+            quality = 'dim';
+            numeral = n.degree.toLowerCase() + '°';
+          } else {
+            quality = 'sus';
+          }
+
+          const chordTones = [n.pc, n3.pc, n5.pc];
+          return {
+            roman: numeral,
+            symbol: `${n.note}${quality}`,
+            pcs: chordTones,
+            rootNote: n.note
+          };
+        });
+      }
+
+      // Standard 7-note tertian harmonization (stacked 3rds: 1 - 3 - 5 - 7)
+      return spelledNotes.map((rootNoteObj, i) => {
+        const thirdObj = spelledNotes[(i + 2) % 7];
+        const fifthObj = spelledNotes[(i + 4) % 7];
+        const seventhObj = spelledNotes[(i + 6) % 7];
+
+        const d3 = (thirdObj.pc - rootNoteObj.pc + 12) % 12;
+        const d5 = (fifthObj.pc - rootNoteObj.pc + 12) % 12;
+        const d7 = (seventhObj.pc - rootNoteObj.pc + 12) % 12;
+
+        let triadSuffix = '';
+        let seventhSuffix = '';
+        let roman = romanBase[i];
+
+        if (d3 === 4 && d5 === 7) {
+          // Major triad
+          triadSuffix = '';
+          if (d7 === 11) seventhSuffix = 'maj7';
+          else if (d7 === 10) seventhSuffix = '7';
+          else seventhSuffix = 'add6';
+        } else if (d3 === 3 && d5 === 7) {
+          // Minor triad
+          roman = roman.toLowerCase();
+          triadSuffix = 'm';
+          if (d7 === 10) seventhSuffix = 'm7';
+          else if (d7 === 11) seventhSuffix = 'm(maj7)';
+          else seventhSuffix = 'm6';
+        } else if (d3 === 3 && d5 === 6) {
+          // Diminished triad
+          roman = roman.toLowerCase() + '°';
+          triadSuffix = 'dim';
+          if (d7 === 10) {
+            roman = romanBase[i].toLowerCase() + 'ø7';
+            seventhSuffix = 'm7♭5';
+          } else if (d7 === 9) {
+            seventhSuffix = 'dim7';
+          } else {
+            seventhSuffix = 'dim';
+          }
+        } else if (d3 === 4 && d5 === 8) {
+          // Augmented triad
+          roman = roman + '+';
+          triadSuffix = 'aug';
+          seventhSuffix = d7 === 11 ? 'maj7♯5' : '7♯5';
+        } else {
+          // Altered/double-diminished fallback
+          roman = roman.toLowerCase();
+          triadSuffix = 'alt';
+          seventhSuffix = '7alt';
+        }
+
+        const use7th = state.chordMode === 'sevenths';
+        const displayRoman = use7th
+          ? (triadSuffix === 'dim' && d7 === 10 ? roman : roman + (seventhSuffix.replace(/^m(?![a])/, '')))
+          : roman;
+
+        return {
+          roman: displayRoman,
+          symbol: rootNoteObj.note + (use7th ? seventhSuffix : triadSuffix),
+          pcs: use7th
+            ? [rootNoteObj.pc, thirdObj.pc, fifthObj.pc, seventhObj.pc]
+            : [rootNoteObj.pc, thirdObj.pc, fifthObj.pc],
+          rootNote: rootNoteObj.note
+        };
+      });
+    }
+
+    // Helper to get active key metadata from Circle of Fifths state
+    function getActiveKeyData() {
+      const wedge = CIRCLE_KEYS[state.wedgeIndex];
+      const entry = wedge[state.ring];
+      const hasAlt = Boolean(entry.altRoot);
+      const useAlt = hasAlt && state.useAltSpelling;
+
+      return {
+        wedge,
+        entry,
+        hasAlt,
+        root: useAlt ? entry.altRoot : entry.root,
+        label: entry.label,
+        pc: entry.pc,
+        acc: useAlt ? entry.altAcc : entry.acc,
+        accType: useAlt ? entry.altAccType : entry.accType,
+        accNotes: useAlt ? entry.altAccNotes : entry.accNotes
+      };
+    }
+
+    /**
+     * ============================================================================
+     * 3. WEB AUDIO API AMBIENT GUITAR / DREAM-PAD SYNTH ENGINE
+     * ============================================================================
+     */
+    class AmbientGuitarSynth {
+      constructor() {
+        this.ctx = null;
+        this.masterGain = null;
+        this.delayNode = null;
+        this.feedbackGain = null;
+        this.activeVoices = [];
+      }
+
+      init() {
+        if (this.ctx) {
+          if (this.ctx.state === 'suspended') this.ctx.resume();
+          return;
+        }
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        this.ctx = new AudioCtx();
+
+        this.masterGain = this.ctx.createGain();
+        this.masterGain.gain.value = 0.34;
+
+        // Lush Ambient Delay Tail for Shoegaze Vibe
+        this.delayNode = this.ctx.createDelay(1.0);
+        this.delayNode.delayTime.value = 0.38;
+
+        this.feedbackGain = this.ctx.createGain();
+        this.feedbackGain.gain.value = 0.36;
+
+        const delayFilter = this.ctx.createBiquadFilter();
+        delayFilter.type = 'lowpass';
+        delayFilter.frequency.value = 1850;
+
+        this.delayNode.connect(delayFilter);
+        delayFilter.connect(this.feedbackGain);
+        this.feedbackGain.connect(this.delayNode);
+
+        const wetGain = this.ctx.createGain();
+        wetGain.gain.value = 0.3;
+        delayFilter.connect(wetGain);
+
+        this.masterGain.connect(this.ctx.destination);
+        wetGain.connect(this.ctx.destination);
+      }
+
+      midiToFreq(midi) {
+        return 440 * Math.pow(2, (midi - 69) / 12);
+      }
+
+      // Immediately fade out any currently ringing sequence voices when user presses Stop
+      stopAll() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        this.activeVoices.forEach(v => {
+          try {
+            v.env.gain.cancelScheduledValues(now);
+            v.env.gain.setValueAtTime(Math.max(0.0001, v.env.gain.value), now);
+            v.env.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
+            v.osc1.stop(now + 0.09);
+            v.osc2.stop(now + 0.09);
+          } catch (_) {}
+        });
+        this.activeVoices = [];
+      }
+
+      // Play a warm, chorus-detuned clean electric guitar pluck with lush ~1.7s sustain
+      playNote(midi, duration = 1.75, delayOffset = 0, velocity = 0.72) {
+        this.init();
+        const now = this.ctx.currentTime + delayOffset;
+        const freq = this.midiToFreq(midi);
+
+        // Two slightly detuned oscillators for natural chorus shimmer
+        const osc1 = this.ctx.createOscillator();
+        const osc2 = this.ctx.createOscillator();
+        osc1.type = 'triangle';
+        osc2.type = 'sine';
+        osc1.frequency.setValueAtTime(freq, now);
+        osc2.frequency.setValueAtTime(freq * 1.0038, now);
+
+        // Warm lowpass pluck filter with gentle bloom
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(freq * 4.8, now);
+        filter.frequency.exponentialRampToValueAtTime(Math.max(280, freq * 1.65), now + 0.65);
+        filter.Q.value = 1.5;
+
+        // Long, open-string style amplitude envelope
+        const env = this.ctx.createGain();
+        env.gain.setValueAtTime(0.0001, now);
+        env.gain.linearRampToValueAtTime(velocity * 0.46, now + 0.022);
+        env.gain.exponentialRampToValueAtTime(velocity * 0.22, now + duration * 0.45);
+        env.gain.exponentialRampToValueAtTime(0.0006, now + duration);
+
+        osc1.connect(filter);
+        osc2.connect(filter);
+        filter.connect(env);
+
+        // Send to dry master & ambient delay
+        env.connect(this.masterGain);
+        env.connect(this.delayNode);
+
+        osc1.start(now);
+        osc2.start(now);
+        osc1.stop(now + duration + 0.06);
+        osc2.stop(now + duration + 0.06);
+
+        const voiceRecord = { osc1, osc2, env };
+        this.activeVoices.push(voiceRecord);
+        osc1.onended = () => {
+          this.activeVoices = this.activeVoices.filter(v => v !== voiceRecord);
+        };
+      }
+
+      init() {
+        if (this.ctx) {
+          if (this.ctx.state === 'suspended') this.ctx.resume();
+          return;
+        }
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        this.ctx = new AudioCtx();
+
+        this.masterGain = this.ctx.createGain();
+        this.masterGain.gain.value = 0.32;
+
+        // Lush Stereo/Mono Ambient Delay Tail for Shoegaze Vibe
+        this.delayNode = this.ctx.createDelay(1.0);
+        this.delayNode.delayTime.value = 0.34;
+
+        this.feedbackGain = this.ctx.createGain();
+        this.feedbackGain.gain.value = 0.34;
+
+        const delayFilter = this.ctx.createBiquadFilter();
+        delayFilter.type = 'lowpass';
+        delayFilter.frequency.value = 1900;
+
+        this.delayNode.connect(delayFilter);
+        delayFilter.connect(this.feedbackGain);
+        this.feedbackGain.connect(this.delayNode);
+
+        const wetGain = this.ctx.createGain();
+        wetGain.gain.value = 0.28;
+        delayFilter.connect(wetGain);
+
+        this.masterGain.connect(this.ctx.destination);
+        wetGain.connect(this.ctx.destination);
+      }
+
+      midiToFreq(midi) {
+        return 440 * Math.pow(2, (midi - 69) / 12);
+      }
+
+      // Play a warm, chorus-detuned electric guitar pluck with soft filter envelope
+      playNote(midi, duration = 1.4, delayOffset = 0, velocity = 0.7) {
+        this.init();
+        const now = this.ctx.currentTime + delayOffset;
+        const freq = this.midiToFreq(midi);
+
+        // Two slightly detuned oscillators for natural chorus shimmer
+        const osc1 = this.ctx.createOscillator();
+        const osc2 = this.ctx.createOscillator();
+        osc1.type = 'triangle';
+        osc2.type = 'sine';
+        osc1.frequency.setValueAtTime(freq, now);
+        osc2.frequency.setValueAtTime(freq * 1.0035, now); // subtle chorus detune
+
+        // Warm lowpass pluck filter
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(freq * 5.2, now);
+        filter.frequency.exponentialRampToValueAtTime(Math.max(260, freq * 1.6), now + 0.45);
+        filter.Q.value = 1.6;
+
+        // Amplitude envelope
+        const env = this.ctx.createGain();
+        env.gain.setValueAtTime(0.0001, now);
+        env.gain.linearRampToValueAtTime(velocity * 0.45, now + 0.018);
+        env.gain.exponentialRampToValueAtTime(0.0008, now + duration);
+
+        osc1.connect(filter);
+        osc2.connect(filter);
+        filter.connect(env);
+
+        // Send to dry master & ambient delay
+        env.connect(this.masterGain);
+        env.connect(this.delayNode);
+
+        osc1.start(now);
+        osc2.start(now);
+        osc1.stop(now + duration + 0.05);
+        osc2.stop(now + duration + 0.05);
+      }
+
+      // Strum a chord across realistic guitar registers
+      strumChord(pcs, rootPc) {
+        this.init();
+        // Build ascending voicings starting around A2 (midi 45) to E3 (midi 52)
+        let baseMidi = 48 + ((rootPc - 0 + 12) % 12);
+        if (baseMidi > 55) baseMidi -= 12;
+
+        const voicing = [baseMidi];
+        pcs.forEach((pc, idx) => {
+          if (idx === 0) return;
+          let candidate = baseMidi + ((pc - rootPc + 12) % 12);
+          if (idx >= 2) candidate += 12; // open airy voicing for 5ths & 7ths
+          voicing.push(candidate);
+        });
+
+        voicing.sort((a, b) => a - b);
+        voicing.forEach((midi, idx) => {
+          this.playNote(midi, 1.9, idx * 0.055, 0.62);
+        });
+      }
+    }
+
+    const synth = new AmbientGuitarSynth();
+
+    /**
+     * ============================================================================
+     * 4. INTERACTIVE SVG CIRCLE OF FIFTHS RENDERER
+     * ============================================================================
+     */
+
+    function polarToCartesian(cx, cy, r, angleDeg) {
+      const rad = ((angleDeg - 90) * Math.PI) / 180.0;
+      return {
+        x: cx + r * Math.cos(rad),
+        y: cy + r * Math.sin(rad)
+      };
+    }
+
+    function createAnnularWedgePath(cx, cy, rInner, rOuter, startAngle, endAngle) {
+      const p1 = polarToCartesian(cx, cy, rOuter, startAngle);
+      const p2 = polarToCartesian(cx, cy, rOuter, endAngle);
+      const p3 = polarToCartesian(cx, cy, rInner, endAngle);
+      const p4 = polarToCartesian(cx, cy, rInner, startAngle);
+      const largeArc = endAngle - startAngle <= 180 ? '0' : '1';
+
+      return [
+        `M ${p1.x.toFixed(2)} ${p1.y.toFixed(2)}`,
+        `A ${rOuter} ${rOuter} 0 ${largeArc} 1 ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`,
+        `L ${p3.x.toFixed(2)} ${p3.y.toFixed(2)}`,
+        `A ${rInner} ${rInner} 0 ${largeArc} 0 ${p4.x.toFixed(2)} ${p4.y.toFixed(2)}`,
+        'Z'
+      ].join(' ');
+    }
+
+    function renderCircleOfFifths() {
+      const svg = document.getElementById('cof-svg');
+      svg.innerHTML = '';
+
+      const cx = 210;
+      const cy = 210;
+      const rOuter = 196;
+      const rMid = 132;
+      const rInner = 74;
+
+      // Determine diatonic neighborhood indices (IV = -1, I = 0, V = +1, Leading Tone vii° = +2)
+      const activeIdx = state.wedgeIndex;
+      const leftIdx = (activeIdx + 11) % 12;  // Subdominant (IV / iv)
+      const rightIdx = (activeIdx + 1) % 12;  // Dominant (V / v)
+      const leadingIdx = (activeIdx + 2) % 12; // vii° / ii°
+
+      // Roman numeral badges shown on the active 3-wedge slice
+      const majorSliceRoles = {
+        [leftIdx]: 'IV',
+        [activeIdx]: 'I',
+        [rightIdx]: 'V'
+      };
+      const minorSliceRoles = {
+        [leftIdx]: 'ii',
+        [activeIdx]: 'vi',
+        [rightIdx]: 'iii',
+        [leadingIdx]: 'vii°'
+      };
+
+      CIRCLE_KEYS.forEach((item, i) => {
+        const startAngle = i * 30 - 15;
+        const endAngle = i * 30 + 15;
+        const midAngle = i * 30;
+
+        const isTonalWedge = i === activeIdx;
+        const isDiatonicNeighbor = i === leftIdx || i === rightIdx;
+        const isLeadingWedge = i === leadingIdx;
+
+        // --- OUTER WEDGE (MAJOR) ---
+        const isMajorSelected = isTonalWedge && state.ring === 'major';
+        let outerFill = '#18181b';
+        let outerStroke = '#27272a';
+        if (isMajorSelected) {
+          outerFill = '#4f46e5'; // indigo-600
+          outerStroke = '#818cf8';
+        } else if (isTonalWedge) {
+          outerFill = '#312e81'; // indigo-950/900 highlight for relative major
+          outerStroke = '#6366f1';
+        } else if (isDiatonicNeighbor) {
+          outerFill = '#262140'; // subtle violet diatonic slice
+          outerStroke = '#4c1d95';
+        } else if (isLeadingWedge) {
+          outerFill = '#27201c';
+          outerStroke = '#78350f';
+        }
+
+        const outerPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        outerPath.setAttribute('d', createAnnularWedgePath(cx, cy, rMid, rOuter, startAngle, endAngle));
+        outerPath.setAttribute('fill', outerFill);
+        outerPath.setAttribute('stroke', outerStroke);
+        outerPath.setAttribute('stroke-width', isMajorSelected ? '2' : '1.2');
+        outerPath.setAttribute('class', 'cof-wedge');
+        outerPath.addEventListener('click', () => selectCircleKey(i, 'major'));
+        svg.appendChild(outerPath);
+
+        // Outer Label (Major Key Name)
+        const outerLabelPos = polarToCartesian(cx, cy, (rMid + rOuter) / 2 + 2, midAngle);
+        const outerText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        outerText.setAttribute('x', outerLabelPos.x);
+        outerText.setAttribute('y', outerLabelPos.y);
+        outerText.setAttribute('text-anchor', 'middle');
+        outerText.setAttribute('dominant-baseline', 'central');
+        outerText.setAttribute('class', 'cof-label font-mono');
+        outerText.setAttribute('font-size', item.major.label.length > 4 ? '11.5' : '14.5');
+        outerText.setAttribute('font-weight', isMajorSelected || isTonalWedge ? '700' : '500');
+        outerText.setAttribute('fill', isMajorSelected ? '#ffffff' : isDiatonicNeighbor || isTonalWedge ? '#e0e7ff' : '#d4d4d8');
+        outerText.textContent = item.major.label;
+        svg.appendChild(outerText);
+
+        // Diatonic Function Sub-badge on Outer Ring (IV, I, V)
+        if (majorSliceRoles[i]) {
+          const badgePos = polarToCartesian(cx, cy, rOuter - 13, midAngle);
+          const badgeText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          badgeText.setAttribute('x', badgePos.x);
+          badgeText.setAttribute('y', badgePos.y);
+          badgeText.setAttribute('text-anchor', 'middle');
+          badgeText.setAttribute('dominant-baseline', 'central');
+          badgeText.setAttribute('class', 'cof-label font-mono');
+          badgeText.setAttribute('font-size', '9.5');
+          badgeText.setAttribute('font-weight', '700');
+          badgeText.setAttribute('fill', isMajorSelected ? '#c7d2fe' : '#a78bfa');
+          badgeText.textContent = majorSliceRoles[i];
+          svg.appendChild(badgeText);
+        }
+
+        // --- INNER WEDGE (RELATIVE MINOR) ---
+        const isMinorSelected = isTonalWedge && state.ring === 'minor';
+        let innerFill = '#121215';
+        let innerStroke = '#27272a';
+        if (isMinorSelected) {
+          innerFill = '#0d9488'; // teal-600
+          innerStroke = '#5eead4';
+        } else if (isTonalWedge) {
+          innerFill = '#134e4a'; // teal-900 for relative minor
+          innerStroke = '#14b8a6';
+        } else if (isDiatonicNeighbor) {
+          innerFill = '#1e1b33';
+          innerStroke = '#4c1d95';
+        } else if (isLeadingWedge) {
+          innerFill = '#291d16';
+          innerStroke = '#92400e';
+        }
+
+        const innerPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        innerPath.setAttribute('d', createAnnularWedgePath(cx, cy, rInner, rMid, startAngle, endAngle));
+        innerPath.setAttribute('fill', innerFill);
+        innerPath.setAttribute('stroke', innerStroke);
+        innerPath.setAttribute('stroke-width', isMinorSelected ? '2' : '1.2');
+        innerPath.setAttribute('class', 'cof-wedge');
+        innerPath.addEventListener('click', () => selectCircleKey(i, 'minor'));
+        svg.appendChild(innerPath);
+
+        // Inner Label (Minor Key Name)
+        const innerLabelPos = polarToCartesian(cx, cy, (rInner + rMid) / 2 + 2, midAngle);
+        const innerText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        innerText.setAttribute('x', innerLabelPos.x);
+        innerText.setAttribute('y', innerLabelPos.y);
+        innerText.setAttribute('text-anchor', 'middle');
+        innerText.setAttribute('dominant-baseline', 'central');
+        innerText.setAttribute('class', 'cof-label font-mono');
+        innerText.setAttribute('font-size', item.minor.label.length > 5 ? '9.2' : '11.5');
+        innerText.setAttribute('font-weight', isMinorSelected || isTonalWedge ? '700' : '400');
+        innerText.setAttribute('fill', isMinorSelected ? '#ffffff' : isTonalWedge ? '#99f6e4' : '#a1a1aa');
+        innerText.textContent = item.minor.label;
+        svg.appendChild(innerText);
+
+        // Diatonic Function Sub-badge on Inner Ring (ii, vi, iii, vii°)
+        if (minorSliceRoles[i]) {
+          const mBadgePos = polarToCartesian(cx, cy, rInner + 11, midAngle);
+          const mBadgeText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          mBadgeText.setAttribute('x', mBadgePos.x);
+          mBadgeText.setAttribute('y', mBadgePos.y);
+          mBadgeText.setAttribute('text-anchor', 'middle');
+          mBadgeText.setAttribute('dominant-baseline', 'central');
+          mBadgeText.setAttribute('class', 'cof-label font-mono');
+          mBadgeText.setAttribute('font-size', '8.5');
+          mBadgeText.setAttribute('font-weight', '600');
+          mBadgeText.setAttribute('fill', isLeadingWedge ? '#fbbf24' : '#5eead4');
+          mBadgeText.textContent = minorSliceRoles[i];
+          svg.appendChild(mBadgeText);
+        }
+      });
+
+      // Center Hub Medallion
+      const hubCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      hubCircle.setAttribute('cx', cx);
+      hubCircle.setAttribute('cy', cy);
+      hubCircle.setAttribute('r', rInner - 4);
+      hubCircle.setAttribute('fill', '#09090b');
+      hubCircle.setAttribute('stroke', '#27272a');
+      hubCircle.setAttribute('stroke-width', '1.5');
+      svg.appendChild(hubCircle);
+
+      const activeKey = getActiveKeyData();
+      const hubRootText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      hubRootText.setAttribute('x', cx);
+      hubRootText.setAttribute('y', cy - 7);
+      hubRootText.setAttribute('text-anchor', 'middle');
+      hubRootText.setAttribute('dominant-baseline', 'central');
+      hubRootText.setAttribute('class', 'cof-label font-mono');
+      hubRootText.setAttribute('font-size', '20');
+      hubRootText.setAttribute('font-weight', '700');
+      hubRootText.setAttribute('fill', state.ring === 'major' ? '#818cf8' : '#2dd4bf');
+      hubRootText.textContent = activeKey.root.replace('#', '♯').replace('b', '♭') + (state.ring === 'minor' ? 'm' : '');
+      svg.appendChild(hubRootText);
+
+      const hubSubText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      hubSubText.setAttribute('x', cx);
+      hubSubText.setAttribute('y', cy + 14);
+      hubSubText.setAttribute('text-anchor', 'middle');
+      hubSubText.setAttribute('dominant-baseline', 'central');
+      hubSubText.setAttribute('class', 'cof-label');
+      hubSubText.setAttribute('font-size', '10');
+      hubSubText.setAttribute('fill', '#71717a');
+      hubSubText.textContent = state.ring === 'major' ? 'MAJOR CENTER' : 'MINOR CENTER';
+      svg.appendChild(hubSubText);
+    }
+
+    /**
+     * ============================================================================
+     * 5. INTERACTIVE 6-STRING GUITAR FRETBOARD RENDERER (FRETS 0–15)
+     * ============================================================================
+     */
+    function renderFretboard(spelledNotes) {
+      const container = document.getElementById('fretboard-container');
+      const numFrets = 15;
+      const width = 980;
+      const height = 225;
+      const nutX = 54;
+      const rightPad = 24;
+      const topPad = 24;
+      const bottomPad = 32;
+      const boardWidth = width - nutX - rightPad;
+      const boardHeight = height - topPad - bottomPad;
+      const stringSpacing = boardHeight / 5;
+
+      // Map pitch class -> note info for O(1) lookup
+      const pcMap = new Map();
+      spelledNotes.forEach(n => pcMap.set(n.pc, n));
+
+      // Compute realistic fret spacing (logarithmic / tapered slightly or clean proportional)
+      const fretX = [nutX];
+      const fretStep = boardWidth / numFrets;
+      for (let f = 1; f <= numFrets; f++) {
+        fretX.push(nutX + f * fretStep);
+      }
+
+      let svgHtml = `<svg viewBox="0 0 ${width} ${height}" class="w-full h-auto block">`;
+
+      // Fretboard Wood/Slate Gradient Background
+      svgHtml += `
+        <defs>
+          <linearGradient id="neckGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#18181b"/>
+            <stop offset="50%" stop-color="#1f1f24"/>
+            <stop offset="100%" stop-color="#141417"/>
+          </linearGradient>
+        </defs>
+        <rect x="${nutX}" y="${topPad - 10}" width="${boardWidth}" height="${boardHeight + 20}" rx="6" fill="url(#neckGrad)" stroke="#27272a" stroke-width="1.5"/>
+      `;
+
+      // Fret Inlay Dots (3, 5, 7, 9, 12 double, 15)
+      const singleMarkers = [3, 5, 7, 9, 15];
+      const midY = topPad + boardHeight / 2;
+
+      singleMarkers.forEach(f => {
+        const cx = (fretX[f - 1] + fretX[f]) / 2;
+        svgHtml += `<circle cx="${cx}" cy="${midY}" r="5.5" fill="#27272a" opacity="0.85"/>`;
+      });
+
+      // 12th Fret Double Inlay
+      const cx12 = (fretX[11] + fretX[12]) / 2;
+      svgHtml += `<circle cx="${cx12}" cy="${topPad + stringSpacing * 1.5}" r="5.5" fill="#3f3f46" opacity="0.85"/>`;
+      svgHtml += `<circle cx="${cx12}" cy="${topPad + stringSpacing * 3.5}" r="5.5" fill="#3f3f46" opacity="0.85"/>`;
+
+      // Fret Wires & Fret Numbers
+      for (let f = 0; f <= numFrets; f++) {
+        const x = fretX[f];
+        if (f === 0) {
+          // Bone/Graphite Nut
+          svgHtml += `<line x1="${x}" y1="${topPad - 10}" x2="${x}" y2="${topPad + boardHeight + 10}" stroke="#a1a1aa" stroke-width="4.5" stroke-linecap="round"/>`;
+        } else {
+          svgHtml += `<line x1="${x}" y1="${topPad - 10}" x2="${x}" y2="${topPad + boardHeight + 10}" stroke="#3f3f46" stroke-width="1.5"/>`;
+        }
+
+        // Fret Number Label at Bottom
+        const labelX = f === 0 ? nutX - 24 : (fretX[f - 1] + fretX[f]) / 2;
+        const isMarker = [3, 5, 7, 9, 12, 15].includes(f);
+        svgHtml += `
+          <text x="${labelX}" y="${height - 8}" text-anchor="middle" class="font-mono" font-size="11" font-weight="${isMarker ? '700' : '400'}" fill="${isMarker ? '#a1a1aa' : '#52525b'}">
+            ${f === 0 ? 'OPEN' : f}
+          </text>
+        `;
+      }
+
+      // Guitar Strings (Top = High e, Bottom = Low E)
+      GUITAR_STRINGS.forEach((str, sIdx) => {
+        const y = topPad + sIdx * stringSpacing;
+        const gauge = 1.1 + sIdx * 0.38;
+
+        // String Name on Far Left
+        svgHtml += `
+          <text x="14" y="${y}" text-anchor="middle" dominant-baseline="central" class="font-mono" font-size="12" font-weight="600" fill="#71717a">
+            ${str.name}
+          </text>
+        `;
+
+        // Metallic String Line
+        svgHtml += `<line x1="${nutX}" y1="${y}" x2="${width - rightPad}" y2="${y}" stroke="#52525b" stroke-width="${gauge}"/>`;
+
+        // Scale Notes along this string (Frets 0 to 15)
+        for (let f = 0; f <= numFrets; f++) {
+          const midi = str.midiOpen + f;
+          const pc = midi % 12;
+          const noteInfo = pcMap.get(pc);
+          if (!noteInfo) continue;
+
+          const cx = f === 0 ? nutX - 24 : (fretX[f - 1] + fretX[f]) / 2;
+          const label = state.displayMode === 'notes' ? noteInfo.note : noteInfo.degree;
+
+          let fill = '#7c3aed'; // violet-600 (color tone)
+          let stroke = '#c4b5fd';
+          let textColor = '#ffffff';
+          let radius = 12.5;
+
+          if (noteInfo.role === 'root') {
+            fill = '#4f46e5'; // indigo-600
+            stroke = '#a5b4fc';
+            radius = 13.5;
+          } else if (noteInfo.role === 'chordTone') {
+            fill = '#0d9488'; // teal-600
+            stroke = '#5eead4';
+          }
+
+          svgHtml += `
+            <g class="fret-node cursor-pointer transition-transform hover:scale-110" data-midi="${midi}" data-pc="${pc}">
+              <circle cx="${cx}" cy="${y}" r="${radius}" fill="${fill}" stroke="${stroke}" stroke-width="${noteInfo.role === 'root' ? '2' : '1.2'}"/>
+              <text x="${cx}" y="${y}" text-anchor="middle" dominant-baseline="central" class="font-mono pointer-events-none select-none" font-size="${label.length > 2 ? '9.5' : '11'}" font-weight="700" fill="${textColor}">
+                ${label}
+              </text>
+            </g>
+          `;
+        }
+      });
+
+      svgHtml += `</svg>`;
+      container.innerHTML = svgHtml;
+
+      // Attach click/tap audio listeners to every fretboard node
+      container.querySelectorAll('.fret-node').forEach(node => {
+        node.addEventListener('click', () => {
+          const midi = parseInt(node.getAttribute('data-midi'), 10);
+          synth.playNote(midi, 1.5, 0, 0.75);
+          const circle = node.querySelector('circle');
+          if (circle) {
+            circle.setAttribute('stroke', '#ffffff');
+            circle.setAttribute('stroke-width', '3');
+            setTimeout(() => {
+              circle.setAttribute('stroke-width', '1.5');
+            }, 320);
+          }
+        });
+      });
+    }
+
+    /**
+     * ============================================================================
+     * 6. UI SYNCHRONIZATION & EVENT HANDLERS
+     * ============================================================================
+     */
+
+    function selectCircleKey(wedgeIdx, ring) {
+      if (state.isPlayingSequence) stopScaleSequence();
+      state.wedgeIndex = wedgeIdx;
+      state.ring = ring;
+
+      // Smart default scale switch when switching between Major and Minor rings
+      const currentScale = SCALES.find(s => s.id === state.scaleId);
+      if (ring === 'minor' && currentScale.id === 'ionian') {
+        state.scaleId = 'aeolian';
+      } else if (ring === 'major' && currentScale.id === 'aeolian') {
+        state.scaleId = 'ionian';
+      }
+
+      updateApp();
+    }
+
+    function populateRootDropdown() {
+      const select = document.getElementById('root-select');
+      select.innerHTML = '';
+
+      CIRCLE_KEYS.forEach((item, idx) => {
+        const optMaj = document.createElement('option');
+        optMaj.value = `${idx}:major`;
+        optMaj.textContent = `${item.major.label} (Major Ring)`;
+        select.appendChild(optMaj);
+
+        const optMin = document.createElement('option');
+        optMin.value = `${idx}:minor`;
+        optMin.textContent = `${item.minor.label} (Minor Ring)`;
+        select.appendChild(optMin);
+      });
+
+      select.addEventListener('change', (e) => {
+        const [idxStr, ring] = e.target.value.split(':');
+        selectCircleKey(parseInt(idxStr, 10), ring);
+      });
+    }
+
+    function renderScaleSelector() {
+      const container = document.getElementById('scale-selector-container');
+      const categories = ['Diatonic Modes', 'Harmonic & Melodic Minor', 'Pentatonic & Blues'];
+
+      container.innerHTML = categories.map(cat => {
+        const items = SCALES.filter(s => s.category === cat);
+        const buttonsHtml = items.map(sc => {
+          const isActive = sc.id === state.scaleId;
+          return `
+            <button
+              data-scale-id="${sc.id}"
+              class="scale-pill px-2.5 py-1.5 rounded-lg text-xs font-medium transition border ${
+                isActive
+                  ? 'bg-indigo-600 text-white border-indigo-400 shadow-md shadow-indigo-950/60'
+                  : 'bg-zinc-950/90 text-zinc-300 border-zinc-800 hover:border-zinc-600 hover:text-white'
+              }"
+            >
+              ${sc.shortName}
+            </button>
+          `;
+        }).join('');
+
+        return `
+          <div class="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
+            <span class="text-[11px] font-medium text-zinc-500 w-40 shrink-0">${cat}:</span>
+            <div class="flex flex-wrap gap-1.5">${buttonsHtml}</div>
+          </div>
+        `;
+      }).join('');
+
+      container.querySelectorAll('.scale-pill').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (state.isPlayingSequence) stopScaleSequence();
+          state.scaleId = btn.getAttribute('data-scale-id');
+          updateApp();
+        });
+      });
+    }
+
+    function updateApp() {
+      const keyData = getActiveKeyData();
+      const activeScale = SCALES.find(s => s.id === state.scaleId);
+      const spelledNotes = computeScaleNotes(keyData.root, activeScale);
+      const chords = computeHarmonizedChords(spelledNotes, activeScale);
+
+      // 1. Update Circle of Fifths SVG & Key Signature Readout
+      renderCircleOfFifths();
+
+      const keySigBadge = document.getElementById('key-sig-badge');
+      const accListEl = document.getElementById('key-accidentals-list');
+      if (keyData.acc === 0) {
+        keySigBadge.textContent = '0 ♯ / ♭';
+        accListEl.textContent = 'None (All Natural Notes)';
+      } else {
+        const symbol = keyData.accType === 'sharp' ? '♯' : '♭';
+        keySigBadge.textContent = `${keyData.acc} ${symbol}`;
+        accListEl.textContent = keyData.accNotes.join('  ');
+      }
+
+      // Enharmonic Toggle Visibility & Label
+      const enhBtn = document.getElementById('btn-enharmonic');
+      const enhLabel = document.getElementById('enharmonic-label');
+      if (keyData.hasAlt) {
+        enhBtn.classList.remove('hidden');
+        enhBtn.classList.add('inline-flex');
+        enhLabel.textContent = `Spelling: ${keyData.root.replace('#', '♯').replace('b', '♭')} (Flip)`;
+      } else {
+        enhBtn.classList.add('hidden');
+        enhBtn.classList.remove('inline-flex');
+      }
+
+      // 2. Sync Root Dropdown & Header Badges
+      document.getElementById('root-select').value = `${state.wedgeIndex}:${state.ring}`;
+      const prettyRoot = keyData.root.replace('#', '♯').replace('b', '♭');
+      document.getElementById('active-scale-title').textContent = `${prettyRoot} ${activeScale.name}`;
+      document.getElementById('scale-category-label').textContent = activeScale.category;
+      document.getElementById('scale-formula-badge').textContent = activeScale.degrees.join(' - ');
+      document.getElementById('scale-vibe-text').textContent = activeScale.vibe;
+
+      const ringBadge = document.getElementById('ring-type-badge');
+      const relText = document.getElementById('relative-key-text');
+      if (state.ring === 'major') {
+        ringBadge.textContent = 'Outer Ring (Major)';
+        ringBadge.className = 'text-[11px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-indigo-500/15 text-indigo-300 border border-indigo-500/30';
+        relText.innerHTML = `Relative Minor: <strong class="text-teal-300 font-mono">${keyData.wedge.minor.label}</strong>`;
+      } else {
+        ringBadge.textContent = 'Inner Ring (Minor)';
+        ringBadge.className = 'text-[11px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-teal-500/15 text-teal-300 border border-teal-500/30';
+        relText.innerHTML = `Relative Major: <strong class="text-indigo-300 font-mono">${keyData.wedge.major.label}</strong>`;
+      }
+
+      // 3. Re-render Scale Selector Pills
+      renderScaleSelector();
+
+      // 4. Render Spelled Scale Note Pills
+      const notesRow = document.getElementById('spelled-notes-row');
+      notesRow.className = `grid gap-2 ${spelledNotes.length === 5 ? 'grid-cols-5' : spelledNotes.length === 6 ? 'grid-cols-3 sm:grid-cols-6' : 'grid-cols-4 sm:grid-cols-7'}`;
+      notesRow.innerHTML = spelledNotes.map((n, idx) => {
+        let badgeStyle = 'border-violet-500/40 bg-violet-950/30 hover:border-violet-400';
+        let degreeColor = 'text-violet-300';
+        if (n.role === 'root') {
+          badgeStyle = 'border-indigo-500/70 bg-indigo-950/50 hover:border-indigo-400 ring-1 ring-indigo-500/30';
+          degreeColor = 'text-indigo-300';
+        } else if (n.role === 'chordTone') {
+          badgeStyle = 'border-teal-500/50 bg-teal-950/35 hover:border-teal-400';
+          degreeColor = 'text-teal-300';
+        }
+
+        const midiPitch = 60 + ((keyData.pc + n.semitoneOffset) % 12) + (keyData.pc + n.semitoneOffset >= 12 ? 12 : 0);
+
+        return `
+          <button data-midi="${midiPitch}" data-pc="${n.pc}" class="note-pill-btn flex flex-col items-center justify-center py-2.5 px-2 rounded-xl border ${badgeStyle} transition duration-150 active:scale-95">
+            <span class="font-mono text-base sm:text-lg font-bold text-white">${n.note}</span>
+            <span class="font-mono text-[11px] font-semibold ${degreeColor} mt-0.5">${n.degree}</span>
+          </button>
+        `;
+      }).join('');
+
+      notesRow.querySelectorAll('.note-pill-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const midi = parseInt(btn.getAttribute('data-midi'), 10);
+          const pc = parseInt(btn.getAttribute('data-pc'), 10);
+          synth.playNote(midi, 1.75, 0, 0.75);
+          highlightPitchClass(pc, 550);
+        });
+      });
+
+      // 5. Render Harmonized Chords Strip
+      const chordsGrid = document.getElementById('diatonic-chords-grid');
+      chordsGrid.className = `grid gap-2.5 ${chords.length === 5 ? 'grid-cols-2 sm:grid-cols-5' : chords.length === 6 ? 'grid-cols-2 sm:grid-cols-6' : 'grid-cols-2 sm:grid-cols-4 md:grid-cols-7'}`;
+      chordsGrid.innerHTML = chords.map((ch, idx) => {
+        const isTonic = idx === 0;
+        return `
+          <button data-chord-idx="${idx}" class="chord-card-btn group flex flex-col items-center justify-between p-3 rounded-xl border transition active:scale-95 ${
+            isTonic
+              ? 'bg-indigo-950/35 border-indigo-500/45 hover:border-indigo-400'
+              : 'bg-zinc-950/85 border-zinc-800 hover:border-teal-500/50'
+          }">
+            <span class="font-mono text-[11px] font-semibold ${isTonic ? 'text-indigo-300' : 'text-zinc-400'}">${ch.roman}</span>
+            <span class="font-mono text-sm sm:text-base font-bold text-zinc-100 my-1 group-hover:text-white">${ch.symbol}</span>
+            <span class="inline-flex items-center gap-1 text-[10px] text-zinc-500 group-hover:text-teal-300 transition">
+              <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/></svg>
+              Strum
+            </span>
+          </button>
+        `;
+      }).join('');
+
+      chordsGrid.querySelectorAll('.chord-card-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.getAttribute('data-chord-idx'), 10);
+          const ch = chords[idx];
+          synth.strumChord(ch.pcs, ch.pcs[0]);
+          btn.classList.add('note-playing');
+          setTimeout(() => btn.classList.remove('note-playing'), 450);
+        });
+      });
+
+      // 6. Render Fretboard
+      renderFretboard(spelledNotes);
+    }
+
+    // Highlight matching Note Pill + all matching Fretboard Nodes for a pitch class
+    function highlightPitchClass(pc, holdMs = null) {
+      document.querySelectorAll('.note-pill-btn').forEach(btn => {
+        if (parseInt(btn.getAttribute('data-pc'), 10) === pc) {
+          btn.classList.add('note-pill-active');
+        } else {
+          btn.classList.remove('note-pill-active');
+        }
+      });
+
+      document.querySelectorAll('.fret-node').forEach(node => {
+        if (parseInt(node.getAttribute('data-pc'), 10) === pc) {
+          node.classList.add('fret-node-active');
+        } else {
+          node.classList.remove('fret-node-active');
+        }
+      });
+
+      if (holdMs) {
+        const t = setTimeout(() => clearPlaybackHighlights(), holdMs);
+        state.playbackTimers.push(t);
+      }
+    }
+
+    function clearPlaybackHighlights() {
+      document.querySelectorAll('.note-pill-active').forEach(el => el.classList.remove('note-pill-active'));
+      document.querySelectorAll('.fret-node-active').forEach(el => el.classList.remove('fret-node-active'));
+    }
+
+    function setPlayButtonVisual(playing) {
+      const btn = document.getElementById('btn-play-scale');
+      const icon = document.getElementById('play-icon');
+      const text = document.getElementById('play-scale-text');
+
+      if (playing) {
+        btn.className = 'inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white shadow-md shadow-rose-950/60 transition active:scale-95';
+        icon.innerHTML = '<rect x="5" y="5" width="10" height="10" rx="1.5"/>';
+        text.textContent = 'Stop';
+      } else {
+        btn.className = 'inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-950/60 transition active:scale-95';
+        icon.innerHTML = '<path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>';
+        text.textContent = 'Play Scale';
+      }
+    }
+
+    function stopScaleSequence() {
+      state.playbackTimers.forEach(id => clearTimeout(id));
+      state.playbackTimers = [];
+      state.isPlayingSequence = false;
+      synth.stopAll();
+      clearPlaybackHighlights();
+      setPlayButtonVisual(false);
+    }
+
+    // Play Scale Arpeggiator at User-Selected BPM & Direction with Real-Time Visual Sync
+    function toggleScaleSequence() {
+      if (state.isPlayingSequence) {
+        stopScaleSequence();
+        return;
+      }
+
+      state.isPlayingSequence = true;
+      setPlayButtonVisual(true);
+      synth.init();
+
+      const keyData = getActiveKeyData();
+      const activeScale = SCALES.find(s => s.id === state.scaleId);
+      const baseMidi = 52 + ((keyData.pc - 4 + 12) % 12); // E3–Eb4 comfortable guitar register
+
+      // Build ascending steps including octave resolution
+      const ascending = activeScale.semitones.map(semi => ({
+        midi: baseMidi + semi,
+        pc: (keyData.pc + semi) % 12
+      }));
+      ascending.push({
+        midi: baseMidi + 12,
+        pc: keyData.pc % 12
+      });
+
+      const descending = [...ascending].reverse();
+      let fullSeq = ascending;
+
+      if (state.playbackDirection === 'desc') {
+        fullSeq = descending;
+      } else if (state.playbackDirection === 'updown') {
+        fullSeq = [...ascending, ...descending.slice(1)];
+      }
+
+      // Quarter-note duration in seconds from BPM (default 70 BPM = ~0.857s per note)
+      const stepSec = 60 / state.playbackBpm;
+      // Sustain overlaps naturally like ringing open strings
+      const noteSustainSec = Math.max(1.4, stepSec * 1.95);
+
+      fullSeq.forEach((step, idx) => {
+        const triggerMs = idx * stepSec * 1000;
+        const timerId = setTimeout(() => {
+          if (!state.isPlayingSequence) return;
+          const isFinalNote = idx === fullSeq.length - 1;
+          synth.playNote(step.midi, isFinalNote ? noteSustainSec * 1.35 : noteSustainSec, 0, 0.74);
+          highlightPitchClass(step.pc);
+        }, triggerMs);
+        state.playbackTimers.push(timerId);
+      });
+
+      const endTimer = setTimeout(() => {
+        state.isPlayingSequence = false;
+        state.playbackTimers = [];
+        clearPlaybackHighlights();
+        setPlayButtonVisual(false);
+      }, fullSeq.length * stepSec * 1000 + 250);
+      state.playbackTimers.push(endTimer);
+    }
+
+    function syncPlaybackControlsUI() {
+      document.getElementById('bpm-slider').value = state.playbackBpm;
+      document.getElementById('bpm-readout').textContent = `${state.playbackBpm} BPM`;
+
+      document.querySelectorAll('.tempo-preset-btn').forEach(btn => {
+        const presetBpm = parseInt(btn.getAttribute('data-bpm'), 10);
+        const isMatch = Math.abs(state.playbackBpm - presetBpm) <= 4;
+        btn.className = isMatch
+          ? 'tempo-preset-btn px-2 py-1 text-[11px] font-medium rounded-md bg-zinc-800 text-teal-300 transition'
+          : 'tempo-preset-btn px-2 py-1 text-[11px] font-medium rounded-md text-zinc-400 hover:text-zinc-200 transition';
+      });
+
+      document.querySelectorAll('.dir-btn').forEach(btn => {
+        const isMatch = btn.getAttribute('data-dir') === state.playbackDirection;
+        btn.className = isMatch
+          ? 'dir-btn px-2 py-1 text-[11px] font-mono font-medium rounded-md bg-zinc-800 text-indigo-300 transition'
+          : 'dir-btn px-2 py-1 text-[11px] font-mono font-medium rounded-md text-zinc-400 hover:text-zinc-200 transition';
+      });
+    }
+
+    // Initialize Event Listeners on DOM Ready
+    window.addEventListener('DOMContentLoaded', () => {
+      populateRootDropdown();
+
+      // Enharmonic Flip Button
+      document.getElementById('btn-enharmonic').addEventListener('click', () => {
+        state.useAltSpelling = !state.useAltSpelling;
+        updateApp();
+      });
+
+      // Play / Stop Scale Button
+      document.getElementById('btn-play-scale').addEventListener('click', toggleScaleSequence);
+
+      // Direction Buttons (1→8, 8→1, 1→8→1)
+      document.querySelectorAll('.dir-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.playbackDirection = btn.getAttribute('data-dir');
+          syncPlaybackControlsUI();
+          if (state.isPlayingSequence) {
+            stopScaleSequence();
+            toggleScaleSequence();
+          }
+        });
+      });
+
+      // Tempo Preset Buttons (Slow 55 / Med 70 / Brisk 105)
+      document.querySelectorAll('.tempo-preset-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.playbackBpm = parseInt(btn.getAttribute('data-bpm'), 10);
+          syncPlaybackControlsUI();
+          if (state.isPlayingSequence) {
+            stopScaleSequence();
+            toggleScaleSequence();
+          }
+        });
+      });
+
+      // Fine BPM Slider (40–130 BPM)
+      const bpmSlider = document.getElementById('bpm-slider');
+      bpmSlider.addEventListener('input', (e) => {
+        state.playbackBpm = parseInt(e.target.value, 10);
+        syncPlaybackControlsUI();
+      });
+      bpmSlider.addEventListener('change', () => {
+        if (state.isPlayingSequence) {
+          stopScaleSequence();
+          toggleScaleSequence();
+        }
+      });
+
+      // Fretboard Note Name vs Interval Degree Toggle
+      const btnNotes = document.getElementById('btn-display-notes');
+      const btnDegrees = document.getElementById('btn-display-degrees');
+
+      btnNotes.addEventListener('click', () => {
+        state.displayMode = 'notes';
+        btnNotes.className = 'px-3 py-1 text-xs font-medium rounded-lg bg-zinc-800 text-white transition';
+        btnDegrees.className = 'px-3 py-1 text-xs font-medium rounded-lg text-zinc-400 hover:text-zinc-200 transition';
+        updateApp();
+      });
+
+      btnDegrees.addEventListener('click', () => {
+        state.displayMode = 'degrees';
+        btnDegrees.className = 'px-3 py-1 text-xs font-medium rounded-lg bg-zinc-800 text-white transition';
+        btnNotes.className = 'px-3 py-1 text-xs font-medium rounded-lg text-zinc-400 hover:text-zinc-200 transition';
+        updateApp();
+      });
+
+      // Triad vs 7th Chord Voicing Toggle
+      const btnTriads = document.getElementById('btn-chord-triads');
+      const btnSevenths = document.getElementById('btn-chord-sevenths');
+
+      btnTriads.addEventListener('click', () => {
+        state.chordMode = 'triads';
+        btnTriads.className = 'px-2.5 py-1 text-xs font-medium rounded-md bg-indigo-600 text-white transition';
+        btnSevenths.className = 'px-2.5 py-1 text-xs font-medium rounded-md text-zinc-400 hover:text-zinc-200 transition';
+        updateApp();
+      });
+
+      btnSevenths.addEventListener('click', () => {
+        state.chordMode = 'sevenths';
+        btnSevenths.className = 'px-2.5 py-1 text-xs font-medium rounded-md bg-indigo-600 text-white transition';
+        btnTriads.className = 'px-2.5 py-1 text-xs font-medium rounded-md text-zinc-400 hover:text-zinc-200 transition';
+        updateApp();
+      });
+
+      // Initial Render
+      syncPlaybackControlsUI();
+      updateApp();
+    });
+  </script>
+</body>
+</html>
